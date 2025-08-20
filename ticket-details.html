@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Desk | Query Details</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-header-bar">
+        <div class="header-left">
+            <div class="app-icon-small">
+                <i class="fas fa-comments"></i>
+            </div>
+            <span class="app-name">Query Desk</span>
+        </div>
+        <div class="header-right">
+            <button class="logout-btn" onclick="logoutUser()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-ticket-alt"></i> Query Details</h1>
+            <p>View and manage individual queries</p>
+        </div>
+        
+        <div class="ticket-details-container">
+            <div class="ticket-header">
+                <div class="ticket-id">
+                    <h2>Query #QRY-2024-001</h2>
+                    <span class="status-badge status-pending">Pending</span>
+                </div>
+                <a href="dashboard.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            
+            <div class="ticket-content">
+                <div class="ticket-info">
+                    <div class="info-section">
+                        <h3><i class="fas fa-user"></i> Customer Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Name:</label>
+                                <span>John Doe</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Email:</label>
+                                <span>john.doe@example.com</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Phone:</label>
+                                <span>+1 (555) 123-4567</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3><i class="fas fa-tag"></i> Query Details</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Subject:</label>
+                                <span>Login Issue - Cannot Access Account</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Priority:</label>
+                                <span class="priority-high">High</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Category:</label>
+                                <span>Technical Support</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Created:</label>
+                                <span>Dec 15, 2024 at 10:30 AM</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Last Updated:</label>
+                                <span>Dec 15, 2024 at 2:45 PM</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3><i class="fas fa-comment"></i> Description</h3>
+                        <div class="description-box">
+                            <p>I'm unable to log into my account. When I try to enter my credentials, I get an error message saying "Invalid username or password." I've tried resetting my password but haven't received the reset email. This is urgent as I need to access my account for work purposes.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ticket-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn primary">
+                            <i class="fas fa-reply"></i> Reply to Customer
+                        </button>
+                        <button class="action-btn secondary">
+                            <i class="fas fa-edit"></i> Edit Query
+                        </button>
+                        <button class="action-btn success">
+                            <i class="fas fa-check"></i> Mark as Resolved
+                        </button>
+                        <button class="action-btn warning">
+                            <i class="fas fa-clock"></i> Set Priority
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=1.1"></script>
+</body>
+</html>

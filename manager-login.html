@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Desk | Manager Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="app-icon">
+            <i class="fas fa-user-tie"></i>
+        </div>
+        <h1>Manager Login</h1>
+        <p class="login-subtitle">Access management dashboard</p>
+        
+        <form id="managerLoginForm">
+            <div class="input-group">
+                <input type="email" id="managerUserId" placeholder="Manager ID" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="managerPassword" placeholder="Password" required>
+            </div>
+            <button type="submit" class="login-btn manager-login-btn">
+                <span id="managerBtnText">Login</span>
+                <span id="managerBtnLoading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Logging in...
+                </span>
+            </button>
+        </form>
+        
+        <div class="back-to-main">
+            <a href="index.html">
+                <i class="fas fa-arrow-left"></i> Back to Main
+            </a>
+        </div>
+    </div>
+    
+    <script src="script.js?v=1.2"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <title>Query Desk | Staff Register</title>
+	<link rel="stylesheet" href="style.css">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+	<div class="login-container">
+		<div class="app-icon">
+			<i class="fas fa-user-plus"></i>
+		</div>
+		<h1>Staff Register</h1>
+		<p class="login-subtitle">Create your account to access the dashboard</p>
+
+		<form id="staffRegisterForm" style="margin-top: 10px; display:flex; flex-direction:column; gap:16px;">
+			<div class="input-group">
+				<input type="text" id="regName" placeholder="Full Name" required>
+			</div>
+			<div class="input-group">
+				<input type="email" id="regEmail" placeholder="Email" required>
+			</div>
+			<div class="input-group">
+				<input type="password" id="regPassword" placeholder="Create Password" required>
+			</div>
+			<button type="submit" class="login-btn" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">
+				<span id="regBtnText">Register</span>
+				<span id="regBtnLoading" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Registering...</span>
+			</button>
+		</form>
+
+		<div class="back-to-main" style="margin-top: 16px; display:flex; justify-content:space-between;">
+			<a href="staff-login.html"><i class="fas fa-sign-in-alt"></i> Already have an account? Login</a>
+			<a href="index.html"><i class="fas fa-arrow-left"></i> Back to Main</a>
+		</div>
+	</div>
+
+	<script src="script.js?v=1.1"></script>
+	<script>
+	// After register, redirect to login with email prefilled
+	document.addEventListener('DOMContentLoaded', function(){
+		const form = document.getElementById('staffRegisterForm');
+		if(!form) return;
+		form.addEventListener('submit', async function(e){
+			e.preventDefault();
+			const name = document.getElementById('regName').value.trim();
+			const email = document.getElementById('regEmail').value.trim();
+			const password = document.getElementById('regPassword').value;
+			const btnText = document.getElementById('regBtnText');
+			const btnLoading = document.getElementById('regBtnLoading');
+			btnText.style.display='none'; btnLoading.style.display='inline-block';
+			try{
+				const res = await fetch('api/staff-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+				const data = await res.json();
+				if(!res.ok || !data.ok) throw new Error(data.error||'Registration failed');
+				window.location.href = 'staff-login.html?email='+encodeURIComponent(email);
+			}catch(err){
+				alert(err.message||'Registration failed');
+			}finally{
+				btnText.style.display='inline'; btnLoading.style.display='none';
+			}
+		});
+	});
+	</script>
+</body>
+</html>
+
+

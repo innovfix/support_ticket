@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management - Query Desk</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-header-bar">
+        <div class="header-left">
+            <div class="app-icon-small">
+                <i class="fas fa-comments"></i>
+            </div>
+            <span class="app-name">Query Desk</span>
+        </div>
+        <div class="header-right">
+            <a href="dashboard.html" class="action-btn">← Back to Manager Dashboard</a>
+            <button onclick="logout()" class="action-btn logout-btn">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-users-cog"></i> Staff Management</h1>
+            <p>View and manage all staff members in the system</p>
+        </div>
+        
+        <div class="dashboard-actions">
+            <div class="status-filter">
+                <label for="statusFilter">Filter by Status:</label>
+                <select id="statusFilter" onchange="filterStaff()">
+                    <option value="">All Staff</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <button onclick="loadStaffList()" class="action-btn" style="background: #3b82f6;">
+                <i class="fas fa-sync-alt"></i> Refresh Staff List
+            </button>
+        </div>
+
+        <div class="staff-section">
+            <div id="loadingMessage" class="loading-message">
+                <p><i class="fas fa-spinner fa-spin"></i> Loading staff members...</p>
+            </div>
+            <div id="staffList" class="staff-grid" style="display: none;">
+                <!-- Staff members will be loaded here -->
+            </div>
+            <div id="noStaffMessage" class="no-staff-message" style="display: none;">
+                <p>No staff members found.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Details Modal -->
+    <div id="staffDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Staff Details</h3>
+                <span class="close" onclick="closeStaffDetailsModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="staffDetailsContent">
+                <!-- Staff details will be loaded here -->
+            </div>
+            <div class="form-actions">
+                <button onclick="closeStaffDetailsModal()" class="action-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Check if user is logged in as manager
+        if (!sessionStorage.getItem('managerLoggedIn')) {
+            window.location.href = 'manager-login.html';
+        }
+
+        // Load staff when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStaffList();
+        });
+
+        // Load staff list
+        async function loadStaffList() {
+            try {
+                console.log('Loading staff list...');
+                const response = await fetch('api/staff-list.php');
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const staff = await response.json();
+                    console.log('Staff data received:', staff);
+                    displayStaff(staff);
+                } else {
+                    console.error('Failed to load staff. Status:', response.status);
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    showError('Failed to load staff list');
+                }
+            } catch (error) {
+                console.error('Error loading staff:', error);
+                showError('Network error loading staff');
+            }
+        }
+
+        // Display staff
+        function displayStaff(staff) {
+            console.log('Displaying staff:', staff);
+            const loadingMessage = document.getElementById('loadingMessage');
+            const staffList = document.getElementById('staffList');
+            const noStaffMessage = document.getElementById('noStaffMessage');
+            
+            // Hide loading message
+            loadingMessage.style.display = 'none';
+            
+            if (!staff || staff.length === 0) {
+                console.log('No staff to display, showing message');
+                staffList.style.display = 'none';
+                noStaffMessage.style.display = 'block';
+                return;
+            }
+
+            console.log('Displaying', staff.length, 'staff members');
+            staffList.style.display = 'grid';
+            noStaffMessage.style.display = 'none';
+            
+            staffList.innerHTML = staff.map(member => createStaffHTML(member)).join('');
+            console.log('Staff HTML generated and displayed');
+        }
+
+        // Create staff HTML
+        function createStaffHTML(member) {
+            return `
+                <div class="staff-member-box">
+                    <div class="staff-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="staff-info">
+                        <h4>${member.name}</h4>
+                        <p><strong>Email:</strong> ${member.email}</p>
+                        <p><strong>Status:</strong> <span class="status-badge active">Active</span></p>
+                    </div>
+                    <div class="staff-actions">
+                        <button onclick="viewStaffDetails(${member.id})" class="action-btn">View Details</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Filter staff by status
+        function filterStaff() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            if (!statusFilter) {
+                // Show all staff if no filter is selected
+                document.querySelectorAll('.staff-member-box').forEach(member => {
+                    member.style.display = 'block';
+                });
+                return;
+            }
+            
+            // Filter staff based on selected status
+            document.querySelectorAll('.staff-member-box').forEach(member => {
+                const statusElement = member.querySelector('.status-badge');
+                if (statusElement) {
+                    if (statusFilter === 'active' && statusElement.textContent === 'Active') {
+                        member.style.display = 'block';
+                    } else if (statusFilter === 'inactive' && statusElement.textContent === 'Inactive') {
+                        member.style.display = 'block';
+                    } else {
+                        member.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // View staff details
+        async function viewStaffDetails(staffId) {
+            try {
+                const response = await fetch(`api/staff-list.php?id=${staffId}`);
+                if (response.ok) {
+                    const staff = await response.json();
+                    const member = staff.find(s => s.id === staffId);
+                    if (member) {
+                        displayStaffDetails(member);
+                        document.getElementById('staffDetailsModal').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading staff details:', error);
+            }
+        }
+
+        // Display staff details in modal
+        function displayStaffDetails(member) {
+            const content = document.getElementById('staffDetailsContent');
+            content.innerHTML = `
+                <div class="staff-details">
+                    <div class="staff-avatar-large">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4>${member.name}</h4>
+                    <p><strong>Email:</strong> ${member.email}</p>
+                    <p><strong>Status:</strong> <span class="status-badge active">Active</span></p>
+                    <p><strong>Member Since:</strong> ${member.created_at || 'N/A'}</p>
+                </div>
+            `;
+        }
+
+        function closeStaffDetailsModal() {
+            document.getElementById('staffDetailsModal').style.display = 'none';
+        }
+        
+        // Show error message
+        function showError(message) {
+            console.error('Error:', message);
+            const staffList = document.getElementById('staffList');
+            const noStaffMessage = document.getElementById('noStaffMessage');
+            
+            staffList.style.display = 'none';
+            noStaffMessage.style.display = 'block';
+            noStaffMessage.innerHTML = `<p style="color: #ef4444;">❌ ${message}</p>`;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('managerLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

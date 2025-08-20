@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Desk | Manager Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="manager-dashboard">
+    <div class="dashboard-header-bar">
+        <div class="header-left">
+            <div class="app-icon-small">
+                <i class="fas fa-comments"></i>
+            </div>
+            <span class="app-name">Query Desk</span>
+        </div>
+        <div class="header-right">
+            <button class="logout-btn" onclick="logoutUser()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-chart-line"></i> Manager Dashboard</h1>
+            <p>Monitor and manage all staff queries efficiently</p>
+        </div>
+        
+        <div class="ticket-stats">
+            <div class="stat-box new">
+                <i class="fas fa-ticket-alt fa-lg" style="color: #10b981; margin-bottom: 15px;"></i>
+                <h3>Total Queries</h3>
+                <p id="totalTickets">0</p>
+            </div>
+            <div class="stat-box pending">
+                <i class="fas fa-clock fa-lg" style="color: #f59e0b; margin-bottom: 15px;"></i>
+                <h3>Pending Queries</h3>
+                <p id="pendingTickets">0</p>
+            </div>
+            <div class="stat-box resolved">
+                <i class="fas fa-check-circle fa-lg" style="color: #3b82f6; margin-bottom: 15px;"></i>
+                <h3>Resolved Queries</h3>
+                <p id="resolvedTickets">0</p>
+            </div>
+        </div>
+        
+
+
+        <div class="quick-navigation">
+            <h3>Quick Navigation</h3>
+            <div class="nav-buttons">
+                <a href="issue-types-management.html" class="nav-btn">
+                    <i class="fas fa-tags"></i> Issue Types Management
+                </a>
+                <a href="staff-management.html" class="nav-btn">
+                    <i class="fas fa-users-cog"></i> Staff Management
+                </a>
+                <a href="reports-analytics.html" class="nav-btn">
+                    <i class="fas fa-chart-bar"></i> Reports & Analytics
+                </a>
+                <button onclick="showAllTickets()" class="nav-btn">
+                    <i class="fas fa-ticket-alt"></i> View All Tickets
+                </button>
+                <button onclick="clearAllTickets()" class="nav-btn danger">
+                    <i class="fas fa-trash"></i> Clear All Tickets
+                </button>
+            </div>
+        </div>
+        
+
+        
+        <!-- Tickets List Section -->
+        <div id="ticketsSection" class="tickets-section" style="display: none;">
+            <div class="section-header">
+                <h3><i class="fas fa-ticket-alt"></i> All Staff Tickets</h3>
+                <div class="ticket-filters">
+                    <select id="statusFilter" onchange="filterManagerTickets()">
+                        <option value="all">All Status</option>
+                        <option value="new">New</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                    <button class="reset-filter-btn" onclick="resetManagerFilter()" title="Reset filter to show all tickets">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tickets-list" id="managerTicketsList">
+                <!-- Tickets will be populated here dynamically -->
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Change Status Modal -->
+    <div id="changeStatusModal" class="modal">
+        <div class="modal-content dialog-style">
+            <div class="modal-header dialog-header">
+                <h2><i class="fas fa-exchange-alt"></i> Change Ticket Status</h2>
+                <span class="close" onclick="closeStatusModal()">&times;</span>
+            </div>
+            
+            <!-- Warning for closed tickets -->
+            <div id="closedTicketWarning" class="closed-ticket-warning" style="display: none;">
+                <div class="warning-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>This ticket is currently CLOSED. You can only view its status history.</span>
+                </div>
+            </div>
+            
+            <form id="changeStatusForm">
+                <div class="form-group dialog-form-group">
+                    <label for="newStatus">Select new status:</label>
+                    <select id="newStatus" name="newStatus" required>
+                        <option value="">Choose status...</option>
+                        <option value="new">🆕 New</option>
+                        <option value="in-progress">⏳ In Progress</option>
+                        <option value="resolved">✅ Resolved</option>
+                        <option value="closed">🔒 Closed</option>
+                    </select>
+                </div>
+
+
+                
+
+                <div class="form-group dialog-form-group">
+                    <label for="statusDescription">Status description (optional):</label>
+                    <textarea id="statusDescription" name="statusDescription" rows="3" placeholder="Add any notes or description about this status change..."></textarea>
+                </div>
+
+                <div class="form-actions dialog-actions">
+                    <button type="button" onclick="closeStatusModal()" class="cancel-btn dialog-cancel">Cancel</button>
+                    <button type="submit" class="submit-btn dialog-submit">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <script src="script.js?v=3.5"></script>
+    <script>
+        // Check and maintain manager session
+        if (sessionStorage.getItem('currentStaffId')) {
+            sessionStorage.setItem('managerLoggedIn', 'true');
+        } else if (!sessionStorage.getItem('managerLoggedIn')) {
+            window.location.href = 'manager-login.html';
+        }
+        
+        // Show all tickets section
+        function showAllTickets() {
+            const ticketsSection = document.getElementById('ticketsSection');
+            if (ticketsSection) {
+                ticketsSection.style.display = 'block';
+                // Load tickets if not already loaded
+                if (typeof displayManagerTickets === 'function') {
+                    displayManagerTickets();
+                }
+                // Scroll to tickets section
+                ticketsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+</body>
+</html>

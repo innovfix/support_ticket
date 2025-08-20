@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Issue Types - Query Desk</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-header-bar">
+        <div class="header-left">
+            <div class="app-icon-small">
+                <i class="fas fa-comments"></i>
+            </div>
+            <span class="app-name">Query Desk</span>
+        </div>
+        <div class="header-right">
+            <a href="dashboard.html" class="action-btn">← Back to Manager Dashboard</a>
+            <button onclick="logout()" class="action-btn logout-btn">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-tags"></i> Issue Types Management</h1>
+            <p>Manage and configure different types of support issues</p>
+        </div>
+        
+        <div class="dashboard-actions">
+            <button onclick="openAddIssueTypeModal()" class="action-btn" style="background: #10b981;">
+                <i class="fas fa-plus"></i> Add New Issue Type
+            </button>
+        </div>
+
+        <div class="issue-types-section">
+            <div id="issueTypesList" class="issue-types-grid">
+                <!-- Issue types will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Issue Type Modal -->
+    <div id="addIssueTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Issue Type</h3>
+                <span class="close" onclick="closeAddIssueTypeModal()">&times;</span>
+            </div>
+            <form id="addIssueTypeForm" onsubmit="addIssueType(event)">
+                <div class="form-group">
+                    <label for="issueTypeName">Issue Type Name:</label>
+                    <input type="text" id="issueTypeName" name="issueTypeName" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeAddIssueTypeModal()" class="action-btn secondary">Cancel</button>
+                    <button type="submit" class="action-btn">Add Issue Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Issue Type Modal -->
+    <div id="editIssueTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Issue Type</h3>
+                <span class="close" onclick="closeEditIssueTypeModal()">&times;</span>
+            </div>
+            <form id="editIssueTypeForm" onsubmit="editIssueType(event)">
+                <input type="hidden" id="editIssueTypeId" name="editIssueTypeId">
+                <div class="form-group">
+                    <label for="editIssueTypeName">Issue Type Name:</label>
+                    <input type="text" id="editIssueTypeName" name="editIssueTypeName" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeEditIssueTypeModal()" class="action-btn secondary">Cancel</button>
+                    <button type="submit" class="action-btn">Update Issue Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteIssueTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <span class="close" onclick="closeDeleteIssueTypeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this issue type?</p>
+                <p><strong id="deleteIssueTypeName"></strong></p>
+            </div>
+            <div class="form-actions">
+                <button onclick="closeDeleteIssueTypeModal()" class="action-btn secondary">Cancel</button>
+                <button onclick="confirmDeleteIssueType()" class="action-btn danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Check if user is logged in as manager
+        if (!sessionStorage.getItem('managerLoggedIn')) {
+            window.location.href = 'manager-login.html';
+        }
+
+        // Load issue types when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadIssueTypesIntoManager();
+        });
+
+        // Modal functions
+        function openAddIssueTypeModal() {
+            document.getElementById('addIssueTypeModal').style.display = 'block';
+            document.getElementById('issueTypeName').focus();
+        }
+
+        function closeAddIssueTypeModal() {
+            document.getElementById('addIssueTypeModal').style.display = 'none';
+            document.getElementById('addIssueTypeForm').reset();
+        }
+
+        function openEditIssueTypeModal(id, name) {
+            document.getElementById('editIssueTypeId').value = id;
+            document.getElementById('editIssueTypeName').value = name;
+            document.getElementById('editIssueTypeModal').style.display = 'block';
+            document.getElementById('editIssueTypeName').focus();
+        }
+
+        function closeEditIssueTypeModal() {
+            document.getElementById('editIssueTypeModal').style.display = 'none';
+            document.getElementById('editIssueTypeForm').reset();
+        }
+
+        function openDeleteIssueTypeModal(id, name) {
+            document.getElementById('deleteIssueTypeId').value = id;
+            document.getElementById('deleteIssueTypeName').textContent = name;
+            document.getElementById('deleteIssueTypeModal').style.display = 'block';
+        }
+
+        function closeDeleteIssueTypeModal() {
+            document.getElementById('deleteIssueTypeModal').style.display = 'none';
+        }
+
+        // Add Issue Type
+        async function addIssueType(event) {
+            event.preventDefault();
+            const name = document.getElementById('issueTypeName').value.trim();
+            if (!name) return;
+            
+            try {
+                const response = await fetch('api/issue-types-add.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.ok) {
+                        closeAddIssueTypeModal();
+                        loadIssueTypesIntoManager();
+                        // Show success message
+                        alert('Issue type added successfully!');
+                    } else {
+                        alert('Failed to add issue type: ' + (result.message || 'Unknown error'));
+                    }
+                } else {
+                    alert('Failed to add issue type. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Please check your connection.');
+            }
+        }
+        
+        // Edit Issue Type
+        async function editIssueType(event) {
+            event.preventDefault();
+            const id = document.getElementById('editIssueTypeId').value;
+            const name = document.getElementById('editIssueTypeName').value.trim();
+            if (!name) return;
+            
+            try {
+                const response = await fetch('api/issue-types-update.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.ok) {
+                        closeEditIssueTypeModal();
+                        loadIssueTypesIntoManager();
+                        // Show success message
+                        alert('Issue type updated successfully!');
+                    } else {
+                        alert('Failed to update issue type: ' + (result.message || 'Unknown error'));
+                    }
+                } else {
+                    alert('Failed to update issue type. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Please check your connection.');
+            }
+        }
+        
+        // Delete Issue Type
+        async function confirmDeleteIssueType() {
+            const id = document.getElementById('deleteIssueTypeId').value;
+            
+            try {
+                const response = await fetch('api/issue-types-delete.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.ok) {
+                        closeDeleteIssueTypeModal();
+                        loadIssueTypesIntoManager();
+                        // Show success message
+                        alert('Issue type deleted successfully!');
+                    } else {
+                        alert('Failed to delete issue type: ' + (result.message || 'Unknown error'));
+                    }
+                } else {
+                    alert('Failed to delete issue type. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Please check your connection.');
+            }
+        }
+        
+        function logout() {
+            sessionStorage.removeItem('managerLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

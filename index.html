@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Desk | Welcome</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="app-icon-large">
+            <i class="fas fa-comments"></i>
+        </div>
+        <h1>Query Desk</h1>
+        <p class="welcome-text">Welcome to the Query Management System</p>
+        
+        <div class="login-options">
+            <div class="login-option staff">
+                <div class="option-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Staff Access</h3>
+                <p>Access your assigned queries and update status</p>
+                <a href="staff-login.html" class="option-btn staff-btn">
+                    <i class="fas fa-sign-in-alt"></i> Staff Login
+                </a>
+                <a href="staff-register.html" class="register-link">
+                    Register
+                </a>
+            </div>
+            
+            <div class="login-option manager">
+                <div class="option-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h3>Manager Access</h3>
+                <p>Manage queries, assign staff, and view reports</p>
+                <a href="manager-login.html" class="option-btn manager-btn">
+                    <i class="fas fa-sign-in-alt"></i> Manager Login
+                </a>
+            </div>
+        </div>
+        
+        <div class="system-info">
+            <p><i class="fas fa-info-circle"></i> Choose your role to access the system</p>
+        </div>
+    </div>
+    
+    <script src="script.js?v=1.1"></script>
+</body>
+</html>

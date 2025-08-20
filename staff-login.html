@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Desk | Staff Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="app-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h1>Staff Login</h1>
+        <p class="login-subtitle">Access your assigned queries</p>
+        
+        <form id="staffLoginForm">
+            <div class="input-group">
+                <input type="email" id="staffUserId" placeholder="Email" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="staffPassword" placeholder="Password" required>
+            </div>
+            <button type="submit" class="login-btn staff-login-btn">
+                <span id="btnText">Login</span>
+                <span id="btnLoading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Logging in...
+                </span>
+            </button>
+        </form>
+
+        <div class="back-to-main" style="margin-top: 16px;">
+            <a href="staff-register.html"><i class="fas fa-user-plus"></i> New staff? Register here</a>
+        </div>
+        
+        <div class="back-to-main">
+            <a href="index.html">
+                <i class="fas fa-arrow-left"></i> Back to Main
+            </a>
+        </div>
+    </div>
+    
+    <script src="script.js?v=1.1"></script>
+    <script>
+    // Prefill email from query string
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email');
+    if(email){
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const input = document.getElementById('staffUserId');
+            if(input){ input.value = email; }
+        });
+    }
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const regForm = document.getElementById('staffRegisterForm');
+        if (regForm) {
+            regForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const name = document.getElementById('regName').value.trim();
+                const email = document.getElementById('regEmail').value.trim();
+                const password = document.getElementById('regPassword').value;
+                const regBtnText = document.getElementById('regBtnText');
+                const regBtnLoading = document.getElementById('regBtnLoading');
+                regBtnText.style.display = 'none';
+                regBtnLoading.style.display = 'inline-block';
+                try {
+                    const res = await fetch('api/staff-register.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data.ok) throw new Error(data.error || 'Registration failed');
+                    alert('Registration successful! You can now log in.');
+                    document.getElementById('staffUserId').value = email;
+                    document.getElementById('staffPassword').focus();
+                } catch (err) {
+                    alert(err.message || 'Registration failed');
+                } finally {
+                    regBtnText.style.display = 'inline';
+                    regBtnLoading.style.display = 'none';
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>
