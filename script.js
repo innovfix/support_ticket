@@ -7,9 +7,24 @@ let currentFilter = 'all';
 let onlineStaff = new Set();
 
 // --- Backend API helpers (MySQL) ---
+// Detect environment and set API base so the app can run from Live Server (127.0.0.1:5500)
+// or via Apache (http://localhost/hima-support/)
+const API_BASE = (() => {
+    const origin = window.location.origin;
+    // When running from VS Code Live Server or similar
+    if (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) {
+        return 'http://localhost/hima-support/api/';
+    }
+    // Default: served by Apache under the same site; use relative api/
+    return 'api/';
+})();
+
 async function apiFetchJson(url, options = {}) {
     try {
-        const response = await fetch(url, options);
+        // Normalize URL: if it's not absolute, build from API_BASE and strip any leading "api/"
+        const isAbsolute = /^https?:\/\//i.test(url);
+        const normalizedPath = isAbsolute ? url : (API_BASE + url.replace(/^\/?api\/?/, ''));
+        const response = await fetch(normalizedPath, options);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         return data;
@@ -1462,6 +1477,11 @@ function displayManagerTickets() {
             const code = ticket.ticketCode || ticket.id;
             const assignedStaffLabel = ticket.assignedStaffName || ticket.assignedToName || ticket.assigned_to_name || ticket.assignedTo || '';
             const assignedByLabel = ticket.assignedByName || ticket.assigned_by_name || ticket.assignedBy || '';
+            const latestNote = (ticket.statusDescription && ticket.statusDescription.trim() !== '')
+                ? ticket.statusDescription
+                : (ticket.statusHistory && ticket.statusHistory.length > 0 && ticket.statusHistory[ticket.statusHistory.length - 1].description
+                    ? ticket.statusHistory[ticket.statusHistory.length - 1].description
+                    : '');
             html += `
             <div class="ticket-card ${ticket.status}">
                 <div class="ticket-header">
@@ -1533,7 +1553,10 @@ function displayManagerTickets() {
                     </button>
                 </div>
                 ` : `
-                <div class="ticket-actions">
+                <div class="ticket-actions" style="display:flex; justify-content:flex-end; gap:10px;">
+                    ${latestNote ? `<button class="btn-edit btn-status-small" onclick='openStatusDescriptionModal(${JSON.stringify(latestNote)})'>
+                        <i class="fas fa-eye"></i> View Status
+                    </button>` : ''}
                     <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${code}')">
                         <i class="fas fa-edit"></i> Status
                     </button>
@@ -1546,6 +1569,47 @@ function displayManagerTickets() {
         ticketsList.innerHTML = html;
         console.log('Displayed tickets count:', filteredTickets.length);
     })();
+}
+
+// Simple modal for manager to view full status description
+function openStatusDescriptionModal(note) {
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.background = 'rgba(0,0,0,0.6)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '3000';
+
+    const box = document.createElement('div');
+    box.style.background = '#fff';
+    box.style.color = '#111827';
+    box.style.borderRadius = '12px';
+    box.style.maxWidth = '560px';
+    box.style.width = '90%';
+    box.style.padding = '20px';
+    box.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+    box.innerHTML = `
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin:0; font-size: 18px;">Status Description</h3>
+            <button id="mgrCloseStatusNote" style="background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#6b7280">&times;</button>
+        </div>
+        <div style="background:#f9fafb; border:1px solid #e5e7eb; padding:14px; border-radius:8px; white-space:pre-wrap; word-break: break-word; max-height:300px; overflow:auto;">${note}</div>
+        <div style="text-align:right; margin-top:14px;">
+            <button id="mgrOkStatusNote" class="action-btn" style="background:#2563eb; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">OK</button>
+        </div>
+    `;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    function close() { document.body.removeChild(overlay); }
+    box.querySelector('#mgrCloseStatusNote').addEventListener('click', close);
+    box.querySelector('#mgrOkStatusNote').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 }
 
 function updateManagerDashboardCounts() {
@@ -1988,77 +2052,15 @@ function updateHeaderToggleText(isOnline) {
 }
 
 // Function to update manager dashboard status (for cross-tab communication)
-function updateManagerDashboardStatus() {
-    // Update localStorage to trigger changes in other tabs
-    const currentStaffId = getCurrentStaffId();
-    const isOnline = isStaffOnline(currentStaffId);
-    
-    // Store the current status with timestamp
-    const statusData = {
-        staffId: currentStaffId,
-        isOnline: isOnline,
-        timestamp: Date.now()
-    };
-    
-    localStorage.setItem('staffStatusUpdate', JSON.stringify(statusData));
-    
-    // Trigger a custom event for real-time updates
-    window.dispatchEvent(new CustomEvent('staffStatusChanged', {
-        detail: statusData
-    }));
-}
+function updateManagerDashboardStatus() { /* removed */ }
 
 
 
 // Function to setup online status display in manager dashboard
-function setupManagerOnlineStatusDisplay() {
-    const dashboardHeader = document.querySelector('.dashboard-header');
-    if (!dashboardHeader) return;
-    
-    // Check if online status display already exists
-    if (document.getElementById('staffOnlineStatus')) return;
-    
-    const onlineStatusDiv = document.createElement('div');
-    onlineStatusDiv.id = 'staffOnlineStatus';
-    onlineStatusDiv.className = 'staff-online-status';
-    onlineStatusDiv.style.display = 'none'; // Initially hidden
-    
-    // Insert at the end of dashboard header
-    dashboardHeader.appendChild(onlineStatusDiv);
-    
-    // Clear stale statuses before updating display
-    clearStaleOnlineStatuses();
-    
-    // Update display
-    updateManagerOnlineStatus();
-    
-    // Add real-time status monitoring
-    setupRealTimeStatusMonitoring();
-}
+function setupManagerOnlineStatusDisplay() { /* removed */ }
 
 // Function to setup real-time status monitoring
-function setupRealTimeStatusMonitoring() {
-    // Listen for storage changes (cross-tab communication)
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'staffStatusUpdate') {
-            console.log('Staff status update detected:', e.newValue);
-            updateManagerOnlineStatus();
-        }
-    });
-    
-    // Listen for custom events (same-tab communication)
-    window.addEventListener('staffStatusChanged', function(e) {
-        console.log('Staff status changed event:', e.detail);
-        updateManagerOnlineStatus();
-    });
-    
-    // Periodic check for status updates
-    setInterval(() => {
-        updateManagerOnlineStatus();
-    }, 2000); // Check every 2 seconds
-    
-    console.log('Real-time status monitoring initialized');
-}
+function setupRealTimeStatusMonitoring() { /* removed */ }
 
 // Function to initialize staff login form
 function initializeStaffLoginForm() {
@@ -2103,7 +2105,7 @@ function initializeStaffLoginForm() {
             // Simplified: authenticate against backend
             (async () => {
                 try {
-                    const response = await fetch('api/staff-login.php', {
+                    const response = await fetch(API_BASE + 'api/staff-login.php'.replace(/^\/?api\/?/, ''), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: staffIdValue, password: passwordValue })
@@ -2151,7 +2153,7 @@ function initializeStaffRegisterForm() {
             btnLoading.style.display = 'inline-block';
         }
         try {
-            const res = await fetch('api/staff-register.php', {
+            const res = await fetch(API_BASE + 'api/staff-register.php'.replace(/^\/?api\/?/, ''), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password })
@@ -2160,7 +2162,7 @@ function initializeStaffRegisterForm() {
             if (!res.ok || !data.ok) throw new Error(data.error || 'Registration failed');
             showSuccessMessage('Registered! Logging you in...');
             // Auto-login
-            const loginRes = await fetch('api/staff-login.php', {
+            const loginRes = await fetch(API_BASE + 'api/staff-login.php'.replace(/^\/?api\/?/, ''), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

@@ -31,6 +31,9 @@ try {
     try {
         $pdo->exec('ALTER TABLE tickets ADD COLUMN assigned_by_name VARCHAR(150) NULL');
     } catch (Throwable $e) {}
+    try {
+        $pdo->exec('ALTER TABLE tickets ADD COLUMN status_description TEXT NULL');
+    } catch (Throwable $e) {}
 
     // Issue types master
     $pdo->exec('CREATE TABLE IF NOT EXISTS issue_types (

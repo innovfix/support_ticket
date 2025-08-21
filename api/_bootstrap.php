@@ -37,6 +37,19 @@ function get_pdo(): PDO {
             // Fall back to environment variables
         }
     }
+    
+    // Try to use main project config if hosting config doesn't exist
+    if (file_exists(__DIR__ . '/../../hima-support/config.php')) {
+        require_once __DIR__ . '/../../hima-support/config.php';
+        try {
+            $pdo = get_hosting_pdo();
+            error_log("Successfully connected to main project database");
+            return $pdo;
+        } catch (Exception $e) {
+            error_log("Main project database connection failed: " . $e->getMessage());
+            // Fall back to environment variables
+        }
+    }
 
     // Fallback to environment variables (for local development)
     $host = env('DB_HOST', 'localhost');

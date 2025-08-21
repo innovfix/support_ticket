@@ -17,6 +17,7 @@ $sql = 'SELECT
     t.assigned_by AS assignedBy,
     t.assigned_to_name AS assignedToName,
     t.assigned_by_name AS assignedByName,
+    t.status_description AS statusDescription,
     COALESCE(t.assigned_to_name, s.name) AS assignedStaffName,
     t.screenshot_path AS screenshot,
     t.created_by AS createdBy,

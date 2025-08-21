@@ -42,7 +42,7 @@
         </div>
     </div>
     
-    <script src="script.js?v=1.1"></script>
+    <script src="script.js?v=1.3"></script>
     <script>
     // Prefill email from query string
     const params = new URLSearchParams(window.location.search);
@@ -68,11 +68,15 @@
                 regBtnText.style.display = 'none';
                 regBtnLoading.style.display = 'inline-block';
                 try {
-                    const res = await fetch('api/staff-register.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, email, password })
-                    });
+                                    const origin = window.location.origin || '';
+                const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
+                    ? 'http://localhost/query-desk/hosting-files/api/' 
+                    : 'api/';
+                const res = await fetch(base + 'staff-register.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
                     const data = await res.json();
                     if (!res.ok || !data.ok) throw new Error(data.error || 'Registration failed');
                     alert('Registration successful! You can now log in.');

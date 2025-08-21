@@ -27,12 +27,13 @@ if ($assignedTo !== null && $assignedTo !== '') {
             assigned_to_name = ?, 
             assigned_by = ?, 
             assigned_by_name = ?, 
+            status_description = ?, 
             updated_at = NOW() 
         WHERE ticket_code = ?');
-    $stmt->execute([$newStatus, $assignedTo, $displayTo, $changedBy, $displayBy, $ticketCode]);
+    $stmt->execute([$newStatus, $assignedTo, $displayTo, $changedBy, $displayBy, $description, $ticketCode]);
 } else {
-    $stmt = $pdo->prepare('UPDATE tickets SET status = ?, updated_at = NOW() WHERE ticket_code = ?');
-    $stmt->execute([$newStatus, $ticketCode]);
+    $stmt = $pdo->prepare('UPDATE tickets SET status = ?, status_description = ?, updated_at = NOW() WHERE ticket_code = ?');
+    $stmt->execute([$newStatus, $description, $ticketCode]);
 }
 
 if ($stmt->rowCount() === 0) {
