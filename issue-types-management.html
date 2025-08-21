@@ -32,6 +32,9 @@
             <button onclick="openAddIssueTypeModal()" class="action-btn" style="background: #10b981;">
                 <i class="fas fa-plus"></i> Add New Issue Type
             </button>
+            <button onclick="testDirectAPI()" class="action-btn" style="background: #3b82f6; margin-left: 10px;">
+                <i class="fas fa-flask"></i> Test API Directly
+            </button>
         </div>
 
         <div class="issue-types-section">
@@ -48,7 +51,7 @@
                 <h3>Add New Issue Type</h3>
                 <span class="close" onclick="closeAddIssueTypeModal()">&times;</span>
             </div>
-            <form id="addIssueTypeForm" onsubmit="addIssueType(event)">
+            <form id="addIssueTypeForm" onsubmit="console.log('Form onsubmit triggered'); handleAddIssueType(event); return false;" action="javascript:void(0);" method="post">
                 <div class="form-group">
                     <label for="issueTypeName">Issue Type Name:</label>
                     <input type="text" id="issueTypeName" name="issueTypeName" required>
@@ -109,7 +112,32 @@
 
         // Load issue types when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            loadIssueTypesIntoManager();
+            console.log('=== DOMContentLoaded event fired ===');
+            console.log('Issue Types Management page loaded');
+            console.log('Manager logged in:', sessionStorage.getItem('managerLoggedIn'));
+            
+            // Test if functions are available
+            console.log('Testing function availability:');
+            console.log('- addIssueType:', typeof addIssueType);
+            console.log('- apiFetchJson:', typeof apiFetchJson);
+            console.log('- fetchIssueTypes:', typeof fetchIssueTypes);
+            console.log('- loadIssueTypesIntoManager:', typeof loadIssueTypesIntoManager);
+            
+            // Simple test first
+            try {
+                console.log('Testing basic functionality...');
+                const list = document.getElementById('issueTypesList');
+                console.log('List element found:', !!list);
+                
+                if (list) {
+                    console.log('Calling loadIssueTypesIntoManager...');
+                    loadIssueTypesIntoManager();
+                } else {
+                    console.error('List element not found!');
+                }
+            } catch (error) {
+                console.error('Error in DOMContentLoaded:', error);
+            }
         });
 
         // Modal functions
@@ -146,35 +174,42 @@
         }
 
         // Add Issue Type
-        async function addIssueType(event) {
+        async function handleAddIssueType(event) {
+            console.log('=== handleAddIssueType called ===');
             event.preventDefault();
+            event.stopPropagation();
+            
             const name = document.getElementById('issueTypeName').value.trim();
-            if (!name) return;
+            if (!name) {
+                console.log('No name provided, returning');
+                return;
+            }
+            
+            console.log('Adding issue type:', name);
+            console.log('addIssueType function exists:', typeof addIssueType);
+            console.log('addIssueType function:', addIssueType);
             
             try {
-                const response = await fetch('api/issue-types-add.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name })
-                });
+                // Use the centralized function from script.js
+                console.log('Calling addIssueType with name:', name);
+                const result = await addIssueType(name);
+                console.log('addIssueType result:', result);
                 
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.ok) {
-                        closeAddIssueTypeModal();
-                        loadIssueTypesIntoManager();
-                        // Show success message
-                        alert('Issue type added successfully!');
-                    } else {
-                        alert('Failed to add issue type: ' + (result.message || 'Unknown error'));
-                    }
-                } else {
-                    alert('Failed to add issue type. Please try again.');
-                }
+                closeAddIssueTypeModal();
+                console.log('Reloading issue types...');
+                console.log('loadIssueTypesIntoManager function:', typeof loadIssueTypesIntoManager);
+                console.log('Calling loadIssueTypesIntoManager...');
+                await loadIssueTypesIntoManager();
+                console.log('loadIssueTypesIntoManager completed');
+                // Show success message
+                alert('Issue type added successfully!');
             } catch (error) {
-                console.error('Error:', error);
-                alert('Network error. Please check your connection.');
+                console.error('Error adding issue type:', error);
+                console.error('Error stack:', error.stack);
+                alert('Failed to add issue type: ' + error.message);
             }
+            
+            return false; // Prevent form submission
         }
         
         // Edit Issue Type
@@ -237,6 +272,32 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('Network error. Please check your connection.');
+            }
+        }
+        
+        // Test function to call API directly
+        async function testDirectAPI() {
+            console.log('Testing API directly...');
+            try {
+                const response = await fetch('api/issue-types-add.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: 'Test Direct API ' + Date.now() })
+                });
+                
+                console.log('Direct API response status:', response.status);
+                const result = await response.json();
+                console.log('Direct API response:', result);
+                
+                if (result.ok) {
+                    alert('Direct API test successful! Added: ' + result.types[result.types.length - 1].name);
+                    loadIssueTypesIntoManager();
+                } else {
+                    alert('Direct API test failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Direct API test error:', error);
+                alert('Direct API test error: ' + error.message);
             }
         }
         

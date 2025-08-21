@@ -120,23 +120,12 @@
 
     <script src="script.js?v=1.3"></script>
     <script>
-        // Compute API base once for Live Server vs Apache
-        const API_BASE_INLINE = (function(){
-            const origin = window.location.origin || '';
-            return (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500'))
-                ? 'http://localhost/query-desk/hosting-files/api/'
-                : 'api/';
-        })();
+
+        
         // Check if user is logged in as staff
         if (!sessionStorage.getItem('staffLoggedIn')) {
             window.location.href = 'staff-login.html';
         }
-        
-        // Debug: Log current session info
-        console.log('Create Ticket Page - Session check:');
-        console.log('staffLoggedIn:', sessionStorage.getItem('staffLoggedIn'));
-        console.log('currentStaffId (session):', sessionStorage.getItem('currentStaffId'));
-        console.log('currentStaffId (local):', localStorage.getItem('currentStaffId'));
 
         // Load issue types when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -147,52 +136,62 @@
         async function loadIssueTypesIntoStaff() {
             try {
                 console.log('Loading issue types...');
-                const response = await fetch(API_BASE_INLINE + 'issue-types-list.php');
+                const response = await fetch('api/issue-types-list.php');
                 console.log('Response status:', response.status);
                 
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Issue types data:', data);
                     
-                    let issueTypes = data.types || [];
-                    if (!issueTypes.length) {
-                        issueTypes = [
-                            { name: 'Withdrawal paid status not amount came' },
-                            { name: 'Coins not added' },
-                            { name: 'Call amount not added' },
-                            { name: 'App issue / crash' },
-                            { name: 'Bank details issue' },
-                            { name: 'KYC' }
-                        ];
-                    }
-                    console.log('Issue types array:', issueTypes);
-                    
-                    const issueTypeSelect = document.getElementById('issueType');
-                    console.log('Issue type select element:', issueTypeSelect);
-                    
-                    if (issueTypeSelect) {
-                        // Clear existing options except the first one
-                        issueTypeSelect.innerHTML = '<option value="">Select Issue Type</option>';
-                        
-                        issueTypes.forEach(type => {
-                            console.log('Adding issue type:', type);
-                            const option = document.createElement('option');
-                            option.value = type.name;
-                            option.textContent = type.name;
-                            issueTypeSelect.appendChild(option);
-                        });
-                        
-                        console.log('Final options count:', issueTypeSelect.options.length);
+                    if (data.types && data.types.length > 0) {
+                        const issueTypeSelect = document.getElementById('issueType');
+                        if (issueTypeSelect) {
+                            issueTypeSelect.innerHTML = '<option value="">Select Issue Type</option>';
+                            data.types.forEach(type => {
+                                const option = document.createElement('option');
+                                option.value = type.name;
+                                option.textContent = type.name;
+                                issueTypeSelect.appendChild(option);
+                            });
+                            console.log('Loaded', data.types.length, 'issue types');
+                        }
                     } else {
-                        console.error('Issue type select element not found!');
+                        console.log('No issue types from API, using fallback');
+                        loadFallbackIssueTypes();
                     }
                 } else {
-                    console.error('Failed to load issue types. Status:', response.status);
-                    const errorText = await response.text();
-                    console.error('Error response:', errorText);
+                    console.log('API response not OK, using fallback');
+                    loadFallbackIssueTypes();
                 }
             } catch (error) {
                 console.error('Error loading issue types:', error);
+                console.log('Using fallback issue types');
+                loadFallbackIssueTypes();
+            }
+        }
+
+        // Load fallback issue types if API fails
+        function loadFallbackIssueTypes() {
+            const issueTypeSelect = document.getElementById('issueType');
+            if (issueTypeSelect) {
+                issueTypeSelect.innerHTML = '<option value="">Select Issue Type</option>';
+                const fallbackTypes = [
+                    'Withdrawal paid status not amount came',
+                    'Coins not added',
+                    'Call amount not added',
+                    'App issue / crash',
+                    'Bank details issue',
+                    'KYC details related',
+                    'Blocking user'
+                ];
+                
+                fallbackTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    issueTypeSelect.appendChild(option);
+                });
+                console.log('Loaded', fallbackTypes.length, 'fallback issue types');
             }
         }
 
@@ -228,7 +227,7 @@
             
             // Get current staff member ID
             const currentStaffId = sessionStorage.getItem('currentStaffId') || localStorage.getItem('currentStaffId');
-            console.log('Current staff ID for ticket creation:', currentStaffId);
+
             
             const formData = new FormData();
             formData.append('mobileOrUserId', document.getElementById('mobileOrUserId').value);
@@ -242,7 +241,7 @@
             }
 
             try {
-                const response = await fetch(API_BASE_INLINE + 'tickets-create.php', {
+                const response = await fetch('api/tickets-create.php', {
                     method: 'POST',
                     body: formData
                 });

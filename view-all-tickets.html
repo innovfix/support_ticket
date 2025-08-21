@@ -46,6 +46,7 @@
             <button onclick="loadMyTickets()" class="action-btn" style="background: #3b82f6;">
                 <i class="fas fa-sync"></i> Refresh Tickets
             </button>
+
             <a href="create-ticket.html" class="action-btn" style="background: #10b981;">
                 <i class="fas fa-plus"></i> Create New Ticket
             </a>
@@ -85,21 +86,10 @@
 
     <script src="script.js?v=1.3"></script>
     <script>
-        // API base URL helper for Live Server compatibility
-        const API_BASE_INLINE = (() => {
-            const origin = window.location.origin;
-            if (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) {
-                return 'http://localhost/hima-support/api/';
-            }
-            return 'api/';
-        })();
-
         async function fetchWithBase(url, options = {}) {
-            const normalizedPath = API_BASE_INLINE + url.replace(/^\/?api\/?/, '');
-            const response = await fetch(normalizedPath, options);
+            const response = await fetch(url, options);
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response;
         }
@@ -109,11 +99,9 @@
             window.location.href = 'staff-login.html';
         }
         
-        // Debug: Log current session info
-        console.log('Session check:');
-        console.log('staffLoggedIn:', sessionStorage.getItem('staffLoggedIn'));
-        console.log('currentStaffId (session):', sessionStorage.getItem('currentStaffId'));
-        console.log('currentStaffId (local):', localStorage.getItem('currentStaffId'));
+
+
+
 
         // Load tickets when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -123,64 +111,27 @@
         // Load my tickets
         async function loadMyTickets() {
             try {
-                console.log('🔄 Starting to load tickets...');
-                
                 const response = await fetchWithBase('api/tickets-list.php');
-                console.log('📡 API Response status:', response.status);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('📊 API Response data:', data);
                     
                     if (data.ok && data.tickets) {
-                        // Filter tickets to show only current staff member's tickets
-                        const currentStaffId = sessionStorage.getItem('currentStaffId') || localStorage.getItem('currentStaffId');
-                        console.log('👤 Current staff ID:', currentStaffId);
-                        
+                        // For now, show all tickets to staff (we'll refine filtering later)
                         let myTickets = data.tickets;
-                        console.log('🎫 Total tickets from API:', data.tickets.length);
+                        console.log('Total tickets in database:', data.tickets.length);
+                        console.log('Current staff ID:', sessionStorage.getItem('currentStaffId') || localStorage.getItem('currentStaffId'));
                         
-                        if (currentStaffId) {
-                            // Filter tickets assigned to this staff member
-                            myTickets = data.tickets.filter(ticket => {
-                                // Check if ticket is assigned to current staff
-                                const isAssignedToMe = ticket.assignedTo === currentStaffId || 
-                                                     ticket.assignedToName === currentStaffId;
-                                
-                                // Check if ticket was created by current staff
-                                const isCreatedByMe = ticket.createdBy === currentStaffId;
-                                
-                                // For now, also show tickets with generic "Staff" creator (existing tickets)
-                                // This will be removed once all tickets have proper staff IDs
-                                const isGenericStaffTicket = ticket.createdBy === 'Staff';
-                                
-                                const shouldShow = isAssignedToMe || isCreatedByMe || isGenericStaffTicket;
-                                console.log(`🎫 Ticket ${ticket.ticketCode}: assignedToMe=${isAssignedToMe}, createdByMe=${isCreatedByMe}, genericStaff=${isGenericStaffTicket}, show=${shouldShow}`);
-                                
-                                return shouldShow;
-                            });
-                        } else {
-                            // If no staff ID, show all tickets (fallback)
-                            console.log('⚠️ No staff ID found, showing all tickets as fallback');
-                            myTickets = data.tickets;
-                        }
-                        
-                        console.log('✅ Filtered tickets count:', myTickets.length);
-                        console.log('✅ Filtered tickets data:', myTickets);
-                        
+                        console.log('Loaded tickets:', myTickets);
+                        console.log('Ticket statuses:', myTickets.map(t => t.status));
                         displayMyTickets(myTickets);
                     } else {
-                        console.error('❌ Invalid response format:', data);
                         displayMyTickets([]);
                     }
                 } else {
-                    console.error('❌ Failed to load tickets. Status:', response.status);
-                    const errorText = await response.text();
-                    console.error('❌ Error response:', errorText);
                     displayMyTickets([]);
                 }
             } catch (error) {
-                console.error('❌ Network error loading tickets:', error);
                 displayMyTickets([]);
             }
         }
@@ -190,12 +141,7 @@
             const ticketsList = document.getElementById('myTicketsList');
             const noTicketsMessage = document.getElementById('noTicketsMessage');
             
-            console.log('🎨 Displaying tickets:', tickets);
-            console.log('🎨 Tickets list element:', ticketsList);
-            console.log('🎨 No tickets message element:', noTicketsMessage);
-            
             if (!tickets || tickets.length === 0) {
-                console.log('📭 No tickets to display, showing no tickets message');
                 ticketsList.style.display = 'none';
                 noTicketsMessage.style.display = 'block';
                 noTicketsMessage.innerHTML = `
@@ -213,71 +159,62 @@
                 return;
             }
 
-            console.log('✅ Displaying', tickets.length, 'tickets');
             ticketsList.style.display = 'grid';
             noTicketsMessage.style.display = 'none';
             
             const ticketsHTML = tickets.map(ticket => createMyTicketHTML(ticket)).join('');
-            console.log('🎨 Generated HTML length:', ticketsHTML.length);
-            console.log('🎨 First 200 chars of HTML:', ticketsHTML.substring(0, 200));
-            
             ticketsList.innerHTML = ticketsHTML;
-            console.log('✅ Tickets HTML set to DOM');
         }
 
         // Create ticket HTML
         function createMyTicketHTML(ticket) {
-            console.log('🎨 Creating HTML for ticket:', ticket);
-            
             try {
                 // Format the created date
                 const createdDate = new Date(ticket.createdAt).toLocaleDateString();
                 const createdTime = new Date(ticket.createdAt).toLocaleTimeString();
                 
-                                 // Get status color based on ticket status
-                 let statusColor = '#10b981'; // default green
-                 if (ticket.status === 'new') {
-                     statusColor = '#3b82f6'; // blue
-                 } else if (ticket.status === 'resolved') {
-                     statusColor = '#f59e0b'; // amber
-                 } else if (ticket.status === 'closed') {
-                     statusColor = '#6b7280'; // gray
-                 } else if (ticket.status === 'in-progress') {
-                     statusColor = '#8b5cf6'; // purple
-                 }
-                 
-                 const html = `
-                     <div class="ticket-card" style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); color: #333;">
-                         <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                             <span class="ticket-code" style="font-weight: 600; font-size: 1.1rem; color: #333;">${ticket.ticketCode || 'N/A'}</span>
-                             <span class="ticket-status" style="padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; background: ${statusColor}; color: white;">${ticket.status || 'Unknown'}</span>
-                         </div>
-                         <div class="ticket-body">
-                             <h4 style="color: #333; margin-bottom: 10px;">${ticket.mobileOrUserId || 'N/A'}</h4>
-                             <p style="margin-bottom: 8px; color: #666;"><strong>Issue:</strong> ${ticket.issueType || 'N/A'}</p>
-                             <p style="margin-bottom: 8px; color: #666;"><strong>Description:</strong> ${ticket.issueDescription || 'N/A'}</p>
-                             <p style="margin-bottom: 8px; color: #666;"><strong>Created:</strong> ${createdDate} at ${createdTime}</p>
-                             <p style="margin-bottom: 8px; color: #666;"><strong>Assigned To:</strong> ${ticket.assignedToName || ticket.assignedTo || 'Not Assigned'}</p>
-                             <p style="margin-bottom: 8px; color: #666;"><strong>Assigned By:</strong> ${ticket.assignedByName || ticket.assignedBy || 'System'}</p>
-                             ${ticket.screenshot ? `<p style="margin-bottom: 8px; color: #666;"><strong>Screenshot:</strong> <a href="${ticket.screenshot}" target="_blank" style="color: #3b82f6; font-size: 0.9rem;">📷 View Screenshot</a></p>` : ''}
-                         </div>
-                         <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px;">
-                            ${ticket.statusDescription ? `<button onclick='showStatusDescription(${JSON.stringify(ticket.statusDescription)})' class="action-btn" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;"><i class=\"fas fa-eye\"></i> View Status</button>` : ''}
-                              <button onclick="editTicket('${ticket.ticketCode}')" class="action-btn" style="background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1;">
-                                  <i class="fas fa-edit"></i> Edit
-                              </button>
-                              <button onclick="deleteTicket('${ticket.ticketCode}')" class="action-btn" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1;">
-                                  <i class="fas fa-trash"></i> Delete
-                              </button>
-                          </div>
-                         
-                      </div>
-                 `;
+                // Get status color based on ticket status
+                let statusColor = '#10b981'; // default green
+                if (ticket.status === 'new') {
+                    statusColor = '#3b82f6'; // blue
+                } else if (ticket.status === 'resolved') {
+                    statusColor = '#f59e0b'; // amber
+                } else if (ticket.status === 'closed') {
+                    statusColor = '#6b7280'; // gray
+                } else if (ticket.status === 'in-progress') {
+                    statusColor = '#8b5cf6'; // purple
+                }
                 
-                console.log('✅ HTML created successfully for ticket:', ticket.ticketCode);
+                const html = `
+                    <div class="ticket-card" style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); color: #333;">
+                        <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <span class="ticket-code" style="font-weight: 600; font-size: 1.1rem; color: #333;">${ticket.ticketCode || 'N/A'}</span>
+                            <span class="ticket-status" style="padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; background: ${statusColor}; color: white;">${ticket.status || 'Unknown'}</span>
+                        </div>
+                        <div class="ticket-body">
+                            <h4 style="color: #333; margin-bottom: 10px;">${ticket.mobileOrUserId || 'N/A'}</h4>
+                            <p style="margin-bottom: 8px; color: #666;"><strong>Issue:</strong> ${ticket.issueType || 'N/A'}</p>
+                            <p style="margin-bottom: 8px; color: #666;"><strong>Description:</strong> ${ticket.issueDescription || 'N/A'}</p>
+                            <p style="margin-bottom: 8px; color: #666;"><strong>Created:</strong> ${createdDate} at ${createdTime}</p>
+                            <p style="margin-bottom: 8px; color: #666;"><strong>Assigned To:</strong> ${ticket.assignedToName || ticket.assignedTo || 'Not Assigned'}</p>
+                            <p style="margin-bottom: 8px; color: #666;"><strong>Assigned By:</strong> ${ticket.assignedByName || ticket.assignedBy || 'System'}</p>
+                            ${ticket.screenshot ? `<p style="margin-bottom: 8px; color: #666;"><strong>Screenshot:</strong> <a href="${ticket.screenshot}" target="_blank" style="color: #3b82f6; font-size: 0.9rem;">📷 View Screenshot</a></p>` : ''}
+                        </div>
+                        <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px;">
+                           ${ticket.statusDescription ? `<button onclick='showStatusDescription(${JSON.stringify(ticket.statusDescription)})' class="action-btn" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;"><i class=\"fas fa-eye\"></i> View Status</button>` : ''}
+                             <button onclick="editTicket('${ticket.ticketCode}')" class="action-btn" style="background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1;">
+                                 <i class="fas fa-edit"></i> Edit
+                             </button>
+                             <button onclick="deleteTicket('${ticket.ticketCode}')" class="action-btn" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1;">
+                                 <i class="fas fa-trash"></i> Delete
+                             </button>
+                         </div>
+                        
+                     </div>
+                `;
+                
                 return html;
             } catch (error) {
-                console.error('❌ Error creating HTML for ticket:', error, ticket);
                 return `
                     <div class="ticket-card" style="border: 2px solid #ef4444;">
                         <div class="ticket-header">
@@ -296,25 +233,39 @@
         // Filter tickets by status
         function filterTickets() {
             const statusFilter = document.getElementById('statusFilter').value;
-            console.log('Filtering by status:', statusFilter);
+            console.log('Filtering tickets by status:', statusFilter);
             
             if (!statusFilter) {
                 // Show all tickets if no filter is selected
                 document.querySelectorAll('.ticket-card').forEach(ticket => {
                     ticket.style.display = 'block';
                 });
+                console.log('Showing all tickets (no filter)');
                 return;
             }
             
             // Filter tickets based on selected status
+            let visibleCount = 0;
             document.querySelectorAll('.ticket-card').forEach(ticket => {
                 const statusElement = ticket.querySelector('.ticket-status');
-                if (statusElement && statusElement.textContent.toLowerCase() === statusFilter.toLowerCase()) {
-                    ticket.style.display = 'block';
+                if (statusElement) {
+                    const ticketStatus = statusElement.textContent.toLowerCase();
+                    const filterStatus = statusFilter.toLowerCase();
+                    console.log('Ticket status:', ticketStatus, 'Filter status:', filterStatus, 'Match:', ticketStatus === filterStatus);
+                    
+                    if (ticketStatus === filterStatus) {
+                        ticket.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        ticket.style.display = 'none';
+                    }
                 } else {
+                    console.log('No status element found in ticket:', ticket);
                     ticket.style.display = 'none';
                 }
             });
+            
+            console.log('Filtered tickets. Visible count:', visibleCount);
         }
 
         // Show full status description in a modal dialog

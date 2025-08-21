@@ -7,25 +7,8 @@ let currentFilter = 'all';
 let onlineStaff = new Set();
 
 // --- Backend API helpers (MySQL) ---
-// Detect environment and set API base so the app can run from Live Server (127.0.0.1:5500)
-// or via Apache (http://localhost/hima-support/)
-const API_BASE = (() => {
-    const origin = window.location.origin;
-    const pathname = window.location.pathname;
-    
-    // When running from VS Code Live Server or similar
-    if (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) {
-        // Check if we're in the hosting-files directory
-        if (pathname.includes('query-desk/hosting-files')) {
-            return 'http://localhost/query-desk/hosting-files/api/';
-        } else {
-            return 'http://localhost/hima-support/api/';
-        }
-    }
-    
-    // Default: served by Apache under the same site; use relative api/
-    return 'api/';
-})();
+// Simple API base - always use relative path when running locally
+const API_BASE = 'api/';
 
 async function apiFetchJson(url, options = {}) {
     try {
@@ -85,9 +68,23 @@ async function updateTicketStatusViaApi(ticketCode, newStatus, description = '',
 
 // --- Issue Types API helpers ---
 async function fetchIssueTypes() {
-    const res = await apiFetchJson('api/issue-types-list.php');
-    if (!res.ok) throw new Error('Issue types load failed');
-    return res.types || [];
+    console.log('=== fetchIssueTypes called ===');
+    try {
+        console.log('Calling apiFetchJson with: api/issue-types-list.php');
+        const res = await apiFetchJson('api/issue-types-list.php');
+        console.log('apiFetchJson result:', res);
+        
+        if (!res.ok) {
+            console.error('API response not ok:', res);
+            throw new Error('Issue types load failed');
+        }
+        
+        console.log('Returning types:', res.types);
+        return res.types || [];
+    } catch (error) {
+        console.error('Error in fetchIssueTypes:', error);
+        throw error;
+    }
 }
 
 async function addIssueType(name) {
@@ -1157,6 +1154,8 @@ async function updateStaffDashboardCounts() {
     }
 }
 
+
+
 // Manager Dashboard Functions
 function displayTickets() {
     const ticketsList = document.getElementById('ticketsList');
@@ -1398,16 +1397,28 @@ function initializeManagerDashboard() {
 // --- Issue Types modal global helpers ---
 async function loadIssueTypesIntoManager() {
     try {
+        console.log('=== loadIssueTypesIntoManager called ===');
         const list = document.getElementById('issueTypesList');
-        if (!list) return;
+        console.log('List element found:', !!list);
+        if (!list) {
+            console.log('No list element found, returning');
+            return;
+        }
+        
+        console.log('Setting loading message...');
         list.innerHTML = '<div style="color:#999">Loading...</div>';
+        
+        console.log('Calling fetchIssueTypes...');
         const types = await fetchIssueTypes();
+        console.log('fetchIssueTypes result:', types);
         
         if (types.length === 0) {
+            console.log('No types found, showing empty message');
             list.innerHTML = '<div style="color:#999; text-align:center; padding:20px;">No issue types found</div>';
             return;
         }
         
+        console.log('Building HTML for', types.length, 'types...');
         list.innerHTML = types.map(type => `
             <div class="issue-type-card">
                 <div class="issue-type-content">
@@ -1423,10 +1434,12 @@ async function loadIssueTypesIntoManager() {
                 </div>
             </div>
         `).join('');
+        console.log('HTML built successfully');
     } catch (e) {
         console.error('Error loading issue types:', e);
+        console.error('Error stack:', e.stack);
         if (list) {
-            list.innerHTML = '<div style="color:#ef4444; text-align:center; padding:20px;">Failed to load issue types</div>';
+            list.innerHTML = '<div style="color:#ef4444; text-align:center; padding:20px;">Failed to load issue types: ' + e.message + '</div>';
         }
     }
 }
@@ -2137,6 +2150,7 @@ function initializeStaffLoginForm() {
                     updateStaffStatus(staffIdValue, true);
                     localStorage.setItem('currentStaffId', staffIdValue);
                     sessionStorage.setItem('currentStaffId', staffIdValue);
+
                     sessionStorage.setItem('staffLoggedIn', 'true');
                     showSuccessMessage('Login successful! Redirecting...');
                     setTimeout(() => {
@@ -2193,6 +2207,8 @@ function initializeStaffRegisterForm() {
             updateStaffStatus(email, true);
             localStorage.setItem('currentStaffId', email);
             sessionStorage.setItem('currentStaffId', email);
+
+            sessionStorage.setItem('staffLoggedIn', 'true');
             window.location.href = 'staff-dashboard.html';
         } catch (err) {
             showErrorMessage(err.message || 'Registration failed');
