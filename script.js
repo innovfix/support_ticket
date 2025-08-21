@@ -11,10 +11,18 @@ let onlineStaff = new Set();
 // or via Apache (http://localhost/hima-support/)
 const API_BASE = (() => {
     const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    
     // When running from VS Code Live Server or similar
     if (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) {
-        return 'http://localhost/hima-support/api/';
+        // Check if we're in the hosting-files directory
+        if (pathname.includes('query-desk/hosting-files')) {
+            return 'http://localhost/query-desk/hosting-files/api/';
+        } else {
+            return 'http://localhost/hima-support/api/';
+        }
     }
+    
     // Default: served by Apache under the same site; use relative api/
     return 'api/';
 })();
