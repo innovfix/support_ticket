@@ -1114,33 +1114,46 @@ function initializeModalHandlers() {
 
 // Staff Dashboard Functions - These are now defined above
 
-function updateStaffDashboardCounts() {
+async function updateStaffDashboardCounts() {
     if (window.location.pathname.includes('staff-dashboard.html')) {
-        // Get today's date
-        const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        
-        // Count tickets created today by staff
-        const todayCount = tickets.filter(t => {
-            const ticketDate = new Date(t.createdAt);
-            return t.createdBy === 'Staff' && ticketDate >= todayStart;
-        }).length;
-        
-        // Count other stats
-        const assignedCount = tickets.filter(t => t.status === 'new' || t.status === 'in-progress').length;
-        const inProgressCount = tickets.filter(t => t.status === 'in-progress').length;
-        const completedCount = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
-        
-        // Update all dashboard counts
-        const todayElement = document.getElementById('todayTotalQueries');
-        const assignedElement = document.getElementById('assignedQueries');
-        const inProgressElement = document.getElementById('inProgressQueries');
-        const completedElement = document.getElementById('completedQueries');
-        
-        if (todayElement) todayElement.textContent = todayCount;
-        if (assignedElement) assignedElement.textContent = assignedCount;
-        if (inProgressElement) inProgressElement.textContent = inProgressCount;
-        if (completedElement) completedElement.textContent = completedCount;
+        try {
+            // Fetch tickets from API first
+            const apiTickets = await fetchTicketsFromApi('all');
+            
+            // Get today's date
+            const today = new Date();
+            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            
+            // Count tickets created today by staff
+            const todayCount = apiTickets.filter(t => {
+                const ticketDate = new Date(t.createdAt);
+                return t.createdBy === 'Staff' && ticketDate >= todayStart;
+            }).length;
+            
+            // Count other stats
+            const assignedCount = apiTickets.filter(t => t.status === 'new' || t.status === 'in-progress').length;
+            const inProgressCount = apiTickets.filter(t => t.status === 'in-progress').length;
+            const completedCount = apiTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+            
+            // Update all dashboard counts
+            const todayElement = document.getElementById('todayTotalQueries');
+            const assignedElement = document.getElementById('assignedQueries');
+            const inProgressElement = document.getElementById('inProgressQueries');
+            const completedElement = document.getElementById('completedQueries');
+            
+            if (todayElement) todayElement.textContent = todayCount;
+            if (assignedElement) assignedElement.textContent = assignedCount;
+            if (inProgressElement) inProgressElement.textContent = inProgressCount;
+            if (completedElement) completedElement.textContent = completedCount;
+        } catch (error) {
+            console.error('Error updating staff dashboard counts:', error);
+            // Set counts to 0 if API fails
+            const elements = ['todayTotalQueries', 'assignedQueries', 'inProgressQueries', 'completedQueries'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = '0';
+            });
+        }
     }
 }
 
