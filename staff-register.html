@@ -51,18 +51,42 @@
 			const password = document.getElementById('regPassword').value;
 			const btnText = document.getElementById('regBtnText');
 			const btnLoading = document.getElementById('regBtnLoading');
-			btnText.style.display='none'; btnLoading.style.display='inline-block';
+			btnText.style.display='none'; 
+			btnLoading.style.display='inline-block';
+			
 			try{
-				const origin = window.location.origin||'';
-				const base = (origin.includes('127.0.0.1:5500')||origin.includes('localhost:5500')) ? 'http://localhost/hima-support/api/' : 'api/';
-				const res = await fetch(base + 'staff-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+				// Determine correct API base URL
+				const origin = window.location.origin || '';
+				const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
+					? 'http://localhost/hima-support/api/' 
+					: 'api/';
+				
+				console.log('Registration API Base URL:', base);
+				
+				const res = await fetch(base + 'staff-register.php', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name, email, password })
+				});
+				
+				console.log('Registration response status:', res.status);
+				
 				const data = await res.json();
-				if(!res.ok || !data.ok) throw new Error(data.error||'Registration failed');
-				window.location.href = 'staff-login.html?email='+encodeURIComponent(email);
-			}catch(err){
-				alert(err.message||'Registration failed');
-			}finally{
-				btnText.style.display='inline'; btnLoading.style.display='none';
+				console.log('Registration response data:', data);
+				
+				if(!res.ok || !data.ok) {
+					throw new Error(data.error || 'Registration failed');
+				}
+				
+				alert('Registration successful! You can now log in.');
+				window.location.href = 'staff-login.html?email=' + encodeURIComponent(email);
+				
+			} catch(err){
+				console.error('Registration error:', err);
+				alert(err.message || 'Registration failed');
+			} finally{
+				btnText.style.display='inline'; 
+				btnLoading.style.display='none';
 			}
 		});
 	});

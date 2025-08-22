@@ -44,53 +44,87 @@
     
     <script src="script.js?v=1.3"></script>
     <script>
-    // Prefill email from query string
-    const params = new URLSearchParams(window.location.search);
-    const email = params.get('email');
-    if(email){
-        document.addEventListener('DOMContentLoaded', ()=>{
-            const input = document.getElementById('staffUserId');
-            if(input){ input.value = email; }
-        });
-    }
-    </script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const regForm = document.getElementById('staffRegisterForm');
-        if (regForm) {
-            regForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const name = document.getElementById('regName').value.trim();
-                const email = document.getElementById('regEmail').value.trim();
-                const password = document.getElementById('regPassword').value;
-                const regBtnText = document.getElementById('regBtnText');
-                const regBtnLoading = document.getElementById('regBtnLoading');
-                regBtnText.style.display = 'none';
-                regBtnLoading.style.display = 'inline-block';
-                try {
-                                    const origin = window.location.origin || '';
-                const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
-                    ? 'http://localhost/hima-support/api/' 
-                    : 'api/';
-                const res = await fetch(base + 'staff-register.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
-                });
-                    const data = await res.json();
-                    if (!res.ok || !data.ok) throw new Error(data.error || 'Registration failed');
-                    alert('Registration successful! You can now log in.');
-                    document.getElementById('staffUserId').value = email;
-                    document.getElementById('staffPassword').focus();
-                } catch (err) {
-                    alert(err.message || 'Registration failed');
-                } finally {
-                    regBtnText.style.display = 'inline';
-                    regBtnLoading.style.display = 'none';
+        // Prefill email from query string
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email');
+        if (email) {
+            document.addEventListener('DOMContentLoaded', () => {
+                const input = document.getElementById('staffUserId');
+                if (input) { 
+                    input.value = email; 
                 }
             });
         }
-    });
+
+        // Staff Login Form Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('staffLoginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('staffUserId').value.trim();
+                    const password = document.getElementById('staffPassword').value;
+                    
+                    if (!email || !password) {
+                        alert('Please fill in all fields');
+                        return;
+                    }
+
+                    // Show loading state
+                    const btnText = document.getElementById('btnText');
+                    const btnLoading = document.getElementById('btnLoading');
+                    btnText.style.display = 'none';
+                    btnLoading.style.display = 'inline-block';
+
+                    try {
+                        // Determine correct API base URL
+                        const origin = window.location.origin || '';
+                        const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
+                            ? 'http://localhost/hima-support/api/' 
+                            : 'api/';
+                        
+                        console.log('API Base URL:', base);
+                        
+                        const response = await fetch(base + 'staff-login.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, password })
+                        });
+
+                        console.log('Response status:', response.status);
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Login failed');
+                        }
+
+                        const data = await response.json();
+                        console.log('Login response:', data);
+
+                        if (data.ok) {
+                            // Store login state
+                            sessionStorage.setItem('staffLoggedIn', 'true');
+                            sessionStorage.setItem('staffEmail', email);
+                            sessionStorage.setItem('staffName', data.name || email);
+                            
+                            // Redirect to staff dashboard
+                            window.location.href = 'staff-dashboard.html';
+                        } else {
+                            throw new Error(data.error || 'Login failed');
+                        }
+
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        alert(error.message || 'Login failed. Please check your credentials.');
+                    } finally {
+                        // Hide loading state
+                        btnText.style.display = 'inline';
+                        btnLoading.style.display = 'none';
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
