@@ -817,6 +817,12 @@
                 return;
             }
             
+            // Debug: Log all ticket fields to see what's available
+            console.log('Ticket data for status view:', ticket);
+            console.log('Available fields:', Object.keys(ticket));
+            console.log('statusDescription field:', ticket.statusDescription);
+            console.log('status_description field:', ticket.status_description);
+            
             // Populate the status view modal
             const statusModal = document.getElementById('viewStatusModal');
             if (statusModal) {
@@ -827,8 +833,41 @@
                 document.getElementById('statusCreatedBy').textContent = ticket.createdBy || 'Unknown';
                 document.getElementById('statusCreatedAt').textContent = new Date(ticket.createdAt).toLocaleString();
                 
-                // Set status description
-                const statusDescription = ticket.statusDescription || ticket.status_description || 'No status description available';
+                // Set status description with better fallback logic
+                let statusDescription = 'No status description available';
+                if (ticket.statusDescription && ticket.statusDescription.trim() !== '') {
+                    statusDescription = ticket.statusDescription;
+                } else if (ticket.status_description && ticket.status_description.trim() !== '') {
+                    statusDescription = ticket.status_description;
+                } else if (ticket.statusHistory && ticket.statusHistory.length > 0) {
+                    // Try to get from status history if available
+                    const latestStatus = ticket.statusHistory[ticket.statusHistory.length - 1];
+                    if (latestStatus.description && latestStatus.description.trim() !== '') {
+                        statusDescription = latestStatus.description;
+                    }
+                }
+                
+                // If still no description, show status-specific default messages
+                if (statusDescription === 'No status description available') {
+                    switch (ticket.status) {
+                        case 'new':
+                            statusDescription = 'Ticket created and awaiting review';
+                            break;
+                        case 'in-progress':
+                            statusDescription = 'Ticket is being worked on by staff';
+                            break;
+                        case 'resolved':
+                            statusDescription = 'Issue has been resolved';
+                            break;
+                        case 'closed':
+                            statusDescription = 'Ticket has been closed';
+                            break;
+                        default:
+                            statusDescription = 'No additional status information available';
+                    }
+                }
+                
+                console.log('Final status description:', statusDescription);
                 document.getElementById('statusDescription').textContent = statusDescription;
                 
                 // Show the modal
@@ -1418,6 +1457,9 @@
                     </div>
                     <div class="detail-row">
                         <strong>Status Description:</strong> <span id="statusDescription"></span>
+                    </div>
+                    <div class="detail-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #4b5563;">
+                        <strong>Note:</strong> <span style="font-size: 0.9rem; color: #9ca3af;">Status descriptions are added when managers change ticket status. If no description is shown, it means the status hasn't been changed from its original state.</span>
                     </div>
                 </div>
             </div>
