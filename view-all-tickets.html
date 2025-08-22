@@ -7,6 +7,309 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Enhanced Ticket UI Styles */
+        .ticket-card {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid #4b5563;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticket-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+        }
+
+        .ticket-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: #60a5fa;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .ticket-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ticket-code {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #60a5fa;
+            background: rgba(96, 165, 250, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            width: fit-content;
+        }
+
+        .ticket-date {
+            font-size: 0.9rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .ticket-status-badges {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .ticket-content {
+            margin-bottom: 24px;
+        }
+
+        .ticket-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #f9fafb;
+            margin: 0 0 12px 0;
+            line-height: 1.4;
+        }
+
+        .ticket-description {
+            color: #d1d5db;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .ticket-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .meta-item i {
+            color: #60a5fa;
+            width: 16px;
+            text-align: center;
+        }
+
+        .ticket-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            border: 1px solid #a855f7;
+        }
+
+        .status-btn:hover {
+            background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%);
+            border-color: #c084fc;
+        }
+
+        /* Status Change Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid #4b5563;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #fbbf24;
+        }
+
+        .form-group {
+            margin: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #f9fafb;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #4b5563;
+            border-radius: 10px;
+            background: #374151;
+            color: #f9fafb;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 24px;
+            border-top: 1px solid #4b5563;
+        }
+
+        .cancel-btn {
+            background: #6b7280;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-btn:hover {
+            background: #4b5563;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .ticket-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .ticket-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .ticket-actions {
+                justify-content: stretch;
+            }
+
+            .action-btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-header-bar">
@@ -231,7 +534,6 @@
                             </div>
                             <div class="ticket-status-badges">
                                 <span class="status-badge" style="background: ${statusColor};">${ticket.status || 'Unknown'}</span>
-                                <span class="priority-badge" style="background: ${priorityColor};">${ticket.priority || 'Medium'}</span>
                             </div>
                         </div>
                         
@@ -262,8 +564,8 @@
                                 <i class="fas fa-eye"></i> View Details
                             </button>
                             ${currentUserRole === 'manager' ? `
-                            <button onclick="editTicket(${ticket.id})" class="action-btn" style="background: #3b82f6;">
-                                <i class="fas fa-edit"></i> Edit
+                            <button onclick="changeTicketStatus('${ticket.ticketCode || ticket.id}')" class="action-btn status-btn">
+                                <i class="fas fa-exchange-alt"></i> Change Status
                             </button>
                             ` : ''}
                         </div>
@@ -400,6 +702,147 @@
                 event.target.style.display = 'none';
             }
         }
+
+        // Status change functionality
+        let currentTicketIdForStatus = null;
+
+        function changeTicketStatus(ticketId) {
+            console.log('=== CHANGE TICKET STATUS FUNCTION CALLED ===');
+            console.log('Ticket ID:', ticketId);
+            
+            currentTicketIdForStatus = ticketId;
+            
+            // Get current ticket to show current status
+            const ticket = allTickets.find(t => t.id == ticketId || t.ticketCode == ticketId);
+            console.log('Found ticket:', ticket);
+            
+            if (ticket) {
+                // Check if ticket is closed
+                if (ticket.status === 'closed') {
+                    alert('Cannot modify a closed ticket. This ticket is locked and cannot be changed.');
+                    return;
+                }
+                
+                // Set current status in dropdown
+                const statusSelect = document.getElementById('newStatus');
+                if (statusSelect) {
+                    statusSelect.value = ticket.status;
+                }
+                
+                // Hide warning and enable form for non-closed tickets
+                const warning = document.getElementById('closedTicketWarning');
+                const form = document.getElementById('changeStatusForm');
+                if (warning) warning.style.display = 'none';
+                if (form) form.style.display = 'block';
+            }
+            
+            // Show the modal
+            const modal = document.getElementById('changeStatusModal');
+            if (modal) {
+                modal.style.display = 'block';
+            } else {
+                alert('Status change modal not found!');
+            }
+        }
+
+        function closeStatusModal() {
+            const modal = document.getElementById('changeStatusModal');
+            if (modal) {
+                // Clear the form fields
+                document.getElementById('newStatus').value = '';
+                document.getElementById('statusDescription').value = '';
+                
+                modal.style.display = 'none';
+                currentTicketIdForStatus = null;
+            }
+        }
+
+        async function updateTicketStatus() {
+            const newStatus = document.getElementById('newStatus').value;
+            const statusDescription = document.getElementById('statusDescription').value.trim();
+            
+            if (!newStatus) {
+                alert('Please select a status');
+                return;
+            }
+            
+            if (!currentTicketIdForStatus) {
+                alert('No ticket selected');
+                return;
+            }
+            
+            try {
+                // Update via API
+                const ticketCode = currentTicketIdForStatus;
+                const response = await fetch('api/tickets-update-status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        ticketCode, 
+                        status: newStatus, 
+                        description: statusDescription, 
+                        changedBy: 'Manager' 
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Ticket status updated successfully!');
+                        closeStatusModal();
+                        loadTickets(); // Refresh the tickets list
+                    } else {
+                        alert('Failed to update status: ' + (result.error || 'Unknown error'));
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error updating ticket status:', error);
+                alert('Failed to update ticket status. Please try again.');
+            }
+        }
     </script>
+
+    <!-- Status Change Modal -->
+    <div id="changeStatusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-exchange-alt"></i> Change Ticket Status</h2>
+                <span class="close" onclick="closeStatusModal()">&times;</span>
+            </div>
+            
+            <!-- Warning for closed tickets -->
+            <div id="closedTicketWarning" class="closed-ticket-warning" style="display: none;">
+                <div class="warning-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>This ticket is currently CLOSED. You can only view its status history.</span>
+                </div>
+            </div>
+            
+            <form id="changeStatusForm" onsubmit="event.preventDefault(); updateTicketStatus();">
+                <div class="form-group">
+                    <label for="newStatus">Select new status:</label>
+                    <select id="newStatus" name="newStatus" required>
+                        <option value="">Choose status...</option>
+                        <option value="new">🆕 New</option>
+                        <option value="in-progress">⏳ In Progress</option>
+                        <option value="resolved">✅ Resolved</option>
+                        <option value="closed">🔒 Closed</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="statusDescription">Status description (optional):</label>
+                    <textarea id="statusDescription" name="statusDescription" rows="3" placeholder="Add any notes or description about this status change..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeStatusModal()" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
