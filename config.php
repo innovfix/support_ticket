@@ -1,19 +1,19 @@
 <?php
 /**
- * Query Desk - Local Development Configuration
- * This configuration is for local XAMPP development
- * For production, update with your hosting provider's database details
+ * Query Desk - Hosting Configuration
+ * This configuration is for production hosting
+ * For local development, update with your XAMPP database details
  */
 
-// Database Configuration (Local XAMPP for development)
-define('DB_HOST', 'localhost');           // XAMPP MySQL host
-define('DB_NAME', 'query_desk');          // Local database name
-define('DB_USER', 'root');                // XAMPP default user
-define('DB_PASS', '');                    // XAMPP default has no password
+// Database Configuration (Hosting)
+define('DB_HOST', 'localhost');          // Usually 'localhost' for shared hosting
+define('DB_NAME', 'u743445510_hima_support'); // Your hosting database name
+define('DB_USER', 'u743445510_hima_support');   // Your hosting database username
+define('DB_PASS', 'HimaSupport@2025');   // Your hosting database password
 define('DB_PORT', '3306');                // Default MySQL port
 
-// Application Configuration (Local development)
-define('APP_URL', 'http://localhost/hima-support/');  // Local project URL
+// Application Configuration (Hosting)
+define('APP_URL', 'https://ticket.himaapp.in/query-desk/');  // Your website URL
 define('UPLOAD_PATH', __DIR__ . '/uploads/');             // Upload directory path
 
 // Security Configuration (Local - no HTTPS)
