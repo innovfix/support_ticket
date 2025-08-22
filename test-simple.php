@@ -7,3 +7,5 @@ echo "<br>Current directory: " . __DIR__;
 echo "<br>Document root: " . $_SERVER['DOCUMENT_ROOT'] ?? 'Not set';
 ?>
 
+
+
