@@ -666,22 +666,6 @@
         // Check authentication and set user role
         document.addEventListener('DOMContentLoaded', function() {
             checkAuthentication();
-            
-            // Auto-refresh tickets every 30 seconds to show status updates from managers
-            setInterval(() => {
-                if (currentUserRole && allTickets.length > 0) {
-                    console.log('Auto-refreshing tickets to check for status updates...');
-                    loadTickets();
-                }
-            }, 30000); // 30 seconds
-            
-            // Refresh when page becomes visible (user switches back to tab)
-            document.addEventListener('visibilitychange', function() {
-                if (!document.hidden && currentUserRole && allTickets.length > 0) {
-                    console.log('Page became visible, refreshing tickets...');
-                    loadTickets();
-                }
-            });
         });
 
         function checkAuthentication() {
