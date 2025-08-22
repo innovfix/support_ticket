@@ -1591,7 +1591,7 @@ function displayManagerTickets() {
                     ${latestNote ? `<button class="btn-edit btn-status-small" onclick='openStatusDescriptionModal(${JSON.stringify(latestNote)})'>
                         <i class="fas fa-eye"></i> View Status
                     </button>` : ''}
-                    <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${code}')">
+                    <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${ticket.id}')">
                         <i class="fas fa-edit"></i> Status
                     </button>
                 </div>
