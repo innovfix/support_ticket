@@ -354,10 +354,8 @@
             
             try {
                 // Update via API
-                const ticketCode = currentTicketIdForStatus;
                 const ticketId = currentTicketIdForStatus;
                 console.log('Sending status update request:', { 
-                    ticketCode, 
                     ticketId,
                     status: newStatus, 
                     description: statusDescription, 
@@ -368,7 +366,6 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        ticketCode, 
                         ticketId,
                         status: newStatus, 
                         description: statusDescription, 

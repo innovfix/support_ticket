@@ -71,8 +71,13 @@ if ($assignedTo !== null && $assignedTo !== '') {
 error_log("Update result - rows affected: " . $stmt->rowCount());
 
 if ($stmt->rowCount() === 0) {
-    error_log("No rows affected - ticket not found for code: $ticketCode");
-    bad_request('Ticket not found for code: ' . $ticketCode, 404);
+    if ($ticketId) {
+        error_log("No rows affected - ticket not found for ID: $ticketId");
+        bad_request('Ticket not found for ID: ' . $ticketId, 404);
+    } else {
+        error_log("No rows affected - ticket not found for code: $ticketCode");
+        bad_request('Ticket not found for code: ' . $ticketCode, 404);
+    }
 }
 
 // Optionally: a status history table would be better, but not added yet
