@@ -161,6 +161,16 @@
             border-color: #c084fc;
         }
 
+        .edit-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 1px solid #3b82f6;
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            border-color: #1e40af;
+        }
+
         /* Status Change Modal Styles */
         .modal {
             display: none;
@@ -504,6 +514,10 @@
         // Create ticket HTML
         function createTicketHTML(ticket) {
             try {
+                // Debug: Log ticket structure to see available fields
+                console.log('Creating HTML for ticket:', ticket);
+                console.log('Available fields:', Object.keys(ticket));
+                
                 // Format dates
                 const createdDate = new Date(ticket.createdAt).toLocaleDateString();
                 const createdTime = new Date(ticket.createdAt).toLocaleTimeString();
@@ -539,7 +553,7 @@
                         
                         <div class="ticket-content">
                             <h4 class="ticket-title">${ticket.issueType || 'No Issue Type'}</h4>
-                            <p class="ticket-description">${ticket.issueDescription || 'No description provided'}</p>
+                            <p class="ticket-description">${ticket.description || ticket.issueDescription || 'No description provided'}</p>
                             
                             <div class="ticket-meta">
                                 <div class="meta-item">
@@ -560,8 +574,8 @@
                         </div>
                         
                         <div class="ticket-actions">
-                            <button onclick="viewTicketDetails(${ticket.id})" class="action-btn">
-                                <i class="fas fa-eye"></i> View Details
+                            <button onclick="editTicket(${ticket.id})" class="action-btn edit-btn">
+                                <i class="fas fa-edit"></i> Edit
                             </button>
                             ${currentUserRole === 'manager' ? `
                             <button onclick="changeTicketStatus('${ticket.ticketCode || ticket.id}')" class="action-btn status-btn">
@@ -645,8 +659,8 @@
 
         // Edit ticket (manager only)
         function editTicket(ticketId) {
-            // Redirect to edit page or open edit modal
-            alert('Edit functionality will be implemented here');
+            // Open ticket details modal for editing
+            viewTicketDetails(ticketId);
         }
 
         // Close ticket details modal
