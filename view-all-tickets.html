@@ -99,8 +99,8 @@
             return response;
         }
 
-        // Check if user is logged in as staff
-        if (!sessionStorage.getItem('staffLoggedIn')) {
+        // Check if user is logged in as staff or manager
+        if (!sessionStorage.getItem('staffLoggedIn') && !sessionStorage.getItem('managerLoggedIn')) {
             window.location.href = 'staff-login.html';
         }
         
@@ -116,23 +116,30 @@
         // Load my tickets
         async function loadMyTickets() {
             try {
+                console.log('Loading tickets...');
                 const response = await fetchWithBase('api/tickets-list.php');
+                console.log('Response:', response);
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Data:', data);
                     
                     if (data.ok && data.tickets) {
+                        console.log('Tickets found:', data.tickets.length);
                         // For now, show all tickets to staff (we'll refine filtering later)
                         let myTickets = data.tickets;
 
                         displayMyTickets(myTickets);
                     } else {
+                        console.log('No tickets in response or response not ok');
                         displayMyTickets([]);
                     }
                 } else {
+                    console.log('Response not ok:', response.status);
                     displayMyTickets([]);
                 }
             } catch (error) {
+                console.error('Error loading tickets:', error);
                 displayMyTickets([]);
             }
         }
