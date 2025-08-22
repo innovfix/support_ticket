@@ -511,6 +511,10 @@
             <a href="create-ticket.html" class="action-btn" style="background: #10b981;">
                 <i class="fas fa-plus"></i> Create New Ticket
             </a>
+            <!-- Test button to verify modal works -->
+            <button onclick="testModal()" class="action-btn" style="background: #f59e0b;">
+                <i class="fas fa-bug"></i> Test Modal
+            </button>
         </div>
 
         <div class="tickets-section">
@@ -699,6 +703,24 @@
             
             // Check for status updates and show notifications
             checkForStatusUpdates(tickets);
+        }
+
+        // Test function to verify modal works
+        function testModal() {
+            console.log('=== TEST MODAL FUNCTION CALLED ===');
+            alert('Test modal function is working!');
+            
+            const modal = document.getElementById('changeStatusModal');
+            console.log('Modal element found:', modal);
+            
+            if (modal) {
+                modal.style.display = 'block';
+                console.log('Modal should now be visible');
+                alert('Modal opened successfully!');
+            } else {
+                console.error('Modal not found!');
+                alert('Modal not found!');
+            }
         }
 
         // Check for status updates and show notifications
@@ -1089,6 +1111,10 @@
             console.log('=== CHANGE TICKET STATUS FUNCTION CALLED ===');
             console.log('Ticket ID:', ticketId);
             console.log('All tickets:', allTickets);
+            console.log('Current user role:', currentUserRole);
+            
+            // Immediate alert to confirm function is called
+            alert('Status button clicked! Ticket ID: ' + ticketId);
             
             currentTicketIdForStatus = ticketId;
             
