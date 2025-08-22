@@ -20,8 +20,8 @@ define('UPLOAD_PATH', __DIR__ . '/uploads/');             // Upload directory pa
 define('ENABLE_HTTPS', true);             // Enable HTTPS redirect in production
 define('SESSION_SECURE', true);           // Session cookies secure over HTTPS
 
-// Error Reporting (Disable for production)
-define('SHOW_ERRORS', false);
+// Error Reporting (Temporarily enabled for debugging production issues)
+define('SHOW_ERRORS', true);
 
 // Database Connection Function
 function get_hosting_pdo() {

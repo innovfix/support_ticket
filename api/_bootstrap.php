@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-// Enable error reporting for debugging
+// Enable error reporting for debugging in production
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1); // Enable for debugging production issues
 ini_set('log_errors', 1);
 
 // Suppress warnings for CLI execution
 if (php_sapi_name() !== 'cli') {
-    // Enhanced CORS headers for Live Server compatibility
+    // Enhanced CORS headers for production
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
@@ -32,28 +32,72 @@ function get_pdo(): PDO {
     static $pdo = null;
     if ($pdo instanceof PDO) return $pdo;
 
-    // Load configuration
-    if (file_exists(__DIR__ . '/../config.php')) {
-        require_once __DIR__ . '/../config.php';
+    try {
+        // Try multiple paths for config.php
+        $configPaths = [
+            __DIR__ . '/../config.php',           // API folder parent
+            __DIR__ . '/../../config.php',        // Two levels up
+            __DIR__ . '/../../../config.php',     // Three levels up
+            dirname(__DIR__) . '/config.php',     // Alternative approach
+        ];
+        
+        $configLoaded = false;
+        foreach ($configPaths as $configPath) {
+            if (file_exists($configPath)) {
+                require_once $configPath;
+                $configLoaded = true;
+                error_log("Config loaded from: " . $configPath);
+                break;
+            }
+        }
+        
+        if (!$configLoaded) {
+            error_log("ERROR: config.php not found in any of these paths: " . implode(', ', $configPaths));
+            throw new Exception("Configuration file not found");
+        }
+        
+        // Check if get_hosting_pdo function exists
+        if (!function_exists('get_hosting_pdo')) {
+            error_log("ERROR: get_hosting_pdo function not found in config.php");
+            throw new Exception("Database connection function not found");
+        }
+        
         $pdo = get_hosting_pdo();
+        if (!$pdo instanceof PDO) {
+            error_log("ERROR: get_hosting_pdo did not return a valid PDO object");
+            throw new Exception("Database connection failed");
+        }
+        
+        error_log("Database connection successful");
         return $pdo;
+        
+    } catch (Exception $e) {
+        error_log("Database connection error: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
+        // Fallback to environment variables if config fails
+        try {
+            $host = env('DB_HOST', 'localhost');
+            $port = env('DB_PORT', '3306');
+            $db   = env('DB_NAME', 'u743445510_hima_support');
+            $user = env('DB_USER', 'u743445510_hima_support');
+            $pass = env('DB_PASS', 'HimaSupport@2025');
+
+            $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $db);
+            $pdo = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+            
+            error_log("Fallback database connection successful using environment variables");
+            return $pdo;
+            
+        } catch (PDOException $pdoError) {
+            error_log("Fallback database connection also failed: " . $pdoError->getMessage());
+            throw new Exception("All database connection attempts failed: " . $e->getMessage() . " | PDO: " . $pdoError->getMessage());
+        }
     }
-
-    // Fallback to environment variables
-    $host = env('DB_HOST', 'localhost');
-    $port = env('DB_PORT', '3306');
-    $db   = env('DB_NAME', 'hima_support');
-    $user = env('DB_USER', 'root');
-    $pass = env('DB_PASS', '');
-
-    $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $db);
-    $pdo = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-    
-    return $pdo;
 }
 
 function json_input(): array {
@@ -66,6 +110,7 @@ function json_input(): array {
 function json_response($data, int $status = 200): void {
     // Ensure no output has been sent before
     if (headers_sent()) {
+        error_log("Headers already sent, cannot send JSON response");
         return;
     }
     
@@ -74,6 +119,7 @@ function json_response($data, int $status = 200): void {
     
     $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     if ($json === false) {
+        error_log("JSON encoding failed for response data");
         http_response_code(500);
         echo json_encode(['error' => 'Internal server error - JSON encoding failed']);
         exit;
@@ -84,5 +130,6 @@ function json_response($data, int $status = 200): void {
 }
 
 function bad_request(string $message, int $status = 400): void {
+    error_log("Bad request: " . $message . " (Status: " . $status . ")");
     json_response(['error' => $message], $status);
 }
