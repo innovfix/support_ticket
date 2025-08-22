@@ -661,19 +661,32 @@
             if (sessionStorage.getItem('staffLoggedIn')) {
                 currentUserRole = 'staff';
                 currentUserEmail = sessionStorage.getItem('staffEmail');
+                console.log('=== STAFF AUTHENTICATION ===');
+                console.log('Staff logged in:', sessionStorage.getItem('staffLoggedIn'));
+                console.log('Staff email from session:', currentUserEmail);
+                console.log('All session storage keys:', Object.keys(sessionStorage));
                 document.getElementById('headerDescription').textContent = 'Track and manage your own created support tickets';
                 document.getElementById('backButton').href = 'staff-dashboard.html';
                 document.getElementById('backButton').textContent = 'Dashboard';
             } else if (sessionStorage.getItem('managerLoggedIn')) {
                 currentUserRole = 'manager';
                 currentUserEmail = sessionStorage.getItem('managerEmail');
+                console.log('=== MANAGER AUTHENTICATION ===');
+                console.log('Manager logged in:', sessionStorage.getItem('managerLoggedIn'));
+                console.log('Manager email from session:', currentUserEmail);
                 document.getElementById('headerDescription').textContent = 'Track and manage all support tickets in the system';
                 document.getElementById('backButton').href = 'dashboard.html';
                 document.getElementById('backButton').textContent = '← Back to Manager Dashboard';
             } else {
+                console.log('=== NO AUTHENTICATION ===');
+                console.log('Session storage contents:', Object.keys(sessionStorage));
                 window.location.href = 'staff-login.html';
                 return;
             }
+            
+            console.log('Final authentication result:');
+            console.log('Role:', currentUserRole);
+            console.log('Email:', currentUserEmail);
             
             loadTickets();
         }
@@ -734,15 +747,45 @@
                 if (data.ok && data.tickets) {
                     // Filter tickets based on user role
                     if (currentUserRole === 'staff') {
-                        // Staff can only see their own tickets
-                        allTickets = data.tickets.filter(ticket => 
-                            ticket.createdBy === currentUserEmail || 
-                            ticket.createdByEmail === currentUserEmail ||
-                            ticket.email === currentUserEmail
-                        );
+                        console.log('=== STAFF FILTERING DEBUG ===');
+                        console.log('Current staff email:', currentUserEmail);
+                        console.log('Total tickets from API:', data.tickets.length);
+                        
+                        // Log first few tickets to see the actual field names
+                        console.log('First 3 tickets structure:', data.tickets.slice(0, 3).map(t => ({
+                            id: t.id,
+                            ticketCode: t.ticketCode,
+                            createdBy: t.createdBy,
+                            createdByEmail: t.createdByEmail,
+                            email: t.email,
+                            creator: t.creator,
+                            staffEmail: t.staffEmail
+                        })));
+                        
+                        // Staff can only see their own tickets - check multiple possible field names
+                        allTickets = data.tickets.filter(ticket => {
+                            // Check all possible field names where creator email might be stored
+                            const possibleCreatorEmails = [
+                                ticket.createdBy,
+                                ticket.createdByEmail,
+                                ticket.email,
+                                ticket.creator,
+                                ticket.staffEmail,
+                                ticket.staff_email,
+                                ticket.created_by
+                            ].filter(email => email && email.trim() !== '');
+                            
+                            const isCreator = possibleCreatorEmails.some(email => 
+                                email.toLowerCase().trim() === currentUserEmail.toLowerCase().trim()
+                            );
+                            
+                            console.log(`Ticket ${ticket.id}: Possible creators: [${possibleCreatorEmails.join(', ')}] -> Match: ${isCreator}`);
+                            
+                            return isCreator;
+                        });
+                        
                         console.log('Filtered tickets for staff:', allTickets.length);
                         console.log('Staff email:', currentUserEmail);
-                        console.log('Sample ticket creator:', data.tickets[0]?.createdBy);
                     } else if (currentUserRole === 'manager') {
                         // Managers can see all tickets
                         allTickets = data.tickets;
