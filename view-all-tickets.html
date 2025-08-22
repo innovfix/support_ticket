@@ -889,13 +889,6 @@
             // Populate the status view modal
             const statusModal = document.getElementById('viewStatusModal');
             if (statusModal) {
-                // Set ticket info
-                document.getElementById('statusTicketCode').textContent = ticket.ticketCode || ticket.id;
-                document.getElementById('statusIssueType').textContent = ticket.issueType || 'No Issue Type';
-                document.getElementById('statusCurrentStatus').textContent = ticket.status || 'Unknown';
-                document.getElementById('statusCreatedBy').textContent = ticket.createdBy || 'Unknown';
-                document.getElementById('statusCreatedAt').textContent = new Date(ticket.createdAt).toLocaleString();
-                
                 // Set status description with better fallback logic
                 let statusDescription = 'No status description available';
                 if (ticket.statusDescription && ticket.statusDescription.trim() !== '') {
@@ -1518,31 +1511,13 @@
     <div id="viewStatusModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-info-circle"></i> Ticket Status History</h2>
+                <h2><i class="fas fa-info-circle"></i> Ticket Status</h2>
                 <span class="close" onclick="closeViewStatusModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="ticket-details">
                     <div class="detail-row">
-                        <strong>Ticket Code:</strong> <span id="statusTicketCode"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Issue Type:</strong> <span id="statusIssueType"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Current Status:</strong> <span id="statusCurrentStatus"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Created By:</strong> <span id="statusCreatedBy"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Created At:</strong> <span id="statusCreatedAt"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Status Description:</strong> <span id="statusDescription"></span>
-                    </div>
-                    <div class="detail-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #4b5563;">
-                        <strong>Note:</strong> <span style="font-size: 0.9rem; color: #9ca3af;">Status descriptions are added when managers change ticket status. If no description is shown, it means the status hasn't been changed from its original state.</span>
+                        <strong>Status description (optional):</strong> <span id="statusDescription"></span>
                     </div>
                 </div>
             </div>
