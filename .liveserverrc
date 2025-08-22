@@ -1,0 +1,19 @@
+{
+  "port": 5500,
+  "host": "127.0.0.1",
+  "root": "./",
+  "open": false,
+  "file": "index.html",
+  "wait": 1000,
+  "mount": [
+    ["/api", "http://localhost/hima-support/api"],
+    ["/uploads", "http://localhost/hima-support/uploads"]
+  ],
+  "proxy": {
+    "/api": "http://localhost/hima-support/api",
+    "/uploads": "http://localhost/hima-support/uploads"
+  },
+  "middleware": {
+    "0": null
+  }
+}
