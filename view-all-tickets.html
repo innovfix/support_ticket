@@ -248,7 +248,8 @@
         }
 
         .form-group select,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group input[type="text"] {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #4b5563;
@@ -260,7 +261,8 @@
         }
 
         .form-group select:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group input[type="text"]:focus {
             outline: none;
             border-color: #8b5cf6;
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
@@ -685,13 +687,107 @@
 
         // Edit ticket (manager only)
         function editTicket(ticketId) {
-            // Open ticket details modal for editing
-            viewTicketDetails(ticketId);
+            console.log('=== EDIT TICKET FUNCTION CALLED ===');
+            console.log('Ticket ID:', ticketId);
+            
+            // Find the ticket to edit
+            const ticket = allTickets.find(t => t.id == ticketId);
+            if (!ticket) {
+                alert('Ticket not found');
+                return;
+            }
+            
+            // Populate the edit form with current ticket data
+            document.getElementById('editTicketId').value = ticket.id;
+            document.getElementById('editIssueType').value = ticket.issueType || '';
+            document.getElementById('editDescription').value = ticket.description || ticket.issueDescription || '';
+            document.getElementById('editStatus').value = ticket.status || 'new';
+            document.getElementById('editPriority').value = ticket.priority || 'Medium';
+            document.getElementById('editAssignedTo').value = ticket.assignedTo || '';
+            document.getElementById('editAssignedToName').value = ticket.assignedToName || '';
+            
+            // Show the edit modal
+            const modal = document.getElementById('editTicketModal');
+            if (modal) {
+                modal.style.display = 'block';
+            } else {
+                alert('Edit modal not found!');
+            }
         }
 
         // Close ticket details modal
         function closeTicketDetailsModal() {
             document.getElementById('ticketDetailsModal').style.display = 'none';
+        }
+
+        // Close edit ticket modal
+        function closeEditTicketModal() {
+            const modal = document.getElementById('editTicketModal');
+            if (modal) {
+                modal.style.display = 'none';
+                // Clear form fields
+                document.getElementById('editTicketId').value = '';
+                document.getElementById('editIssueType').value = '';
+                document.getElementById('editDescription').value = '';
+                document.getElementById('editStatus').value = 'new';
+                document.getElementById('editPriority').value = 'Medium';
+                document.getElementById('editAssignedTo').value = '';
+                document.getElementById('editAssignedToName').value = '';
+            }
+        }
+
+        // Save edited ticket
+        async function saveEditedTicket() {
+            const ticketId = document.getElementById('editTicketId').value;
+            const issueType = document.getElementById('editIssueType').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const status = document.getElementById('editStatus').value;
+            const priority = document.getElementById('editPriority').value;
+            const assignedTo = document.getElementById('editAssignedTo').value.trim();
+            const assignedToName = document.getElementById('editAssignedToName').value.trim();
+            
+            if (!issueType) {
+                alert('Issue Type is required');
+                return;
+            }
+            
+            if (!description) {
+                alert('Description is required');
+                return;
+            }
+            
+            try {
+                // Update ticket via API
+                const response = await fetch('api/tickets-update.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ticketId: ticketId,
+                        issueType: issueType,
+                        description: description,
+                        status: status,
+                        priority: priority,
+                        assignedTo: assignedTo,
+                        assignedToName: assignedToName
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Ticket updated successfully!');
+                        closeEditTicketModal();
+                        loadTickets(); // Refresh the tickets list
+                    } else {
+                        alert('Failed to update ticket: ' + (result.error || 'Unknown error'));
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error updating ticket:', error);
+                alert('Failed to update ticket. Please try again.');
+            }
         }
 
         // Show loading state
@@ -880,6 +976,65 @@
                 <div class="form-actions">
                     <button type="button" onclick="closeStatusModal()" class="cancel-btn">Cancel</button>
                     <button type="submit" class="submit-btn">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Ticket Modal -->
+    <div id="editTicketModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Edit Ticket</h2>
+                <span class="close" onclick="closeEditTicketModal()">&times;</span>
+            </div>
+            
+            <form id="editTicketForm" onsubmit="event.preventDefault(); saveEditedTicket();">
+                <input type="hidden" id="editTicketId" name="ticketId">
+                
+                <div class="form-group">
+                    <label for="editIssueType">Issue Type:</label>
+                    <input type="text" id="editIssueType" name="issueType" required placeholder="Enter issue type">
+                </div>
+
+                <div class="form-group">
+                    <label for="editDescription">Description:</label>
+                    <textarea id="editDescription" name="description" rows="4" required placeholder="Enter detailed description"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editStatus">Status:</label>
+                    <select id="editStatus" name="status" required>
+                        <option value="new">🆕 New</option>
+                        <option value="in-progress">⏳ In Progress</option>
+                        <option value="resolved">✅ Resolved</option>
+                        <option value="closed">🔒 Closed</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPriority">Priority:</label>
+                    <select id="editPriority" name="priority" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editAssignedTo">Assigned To (Staff ID):</label>
+                    <input type="text" id="editAssignedTo" name="assignedTo" placeholder="Enter staff ID">
+                </div>
+
+                <div class="form-group">
+                    <label for="editAssignedToName">Assigned To (Name):</label>
+                    <input type="text" id="editAssignedToName" name="assignedToName" placeholder="Enter staff name">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeEditTicketModal()" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">Save Changes</button>
                 </div>
             </form>
         </div>
