@@ -18,7 +18,9 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
+            min-height: auto;
+            height: auto;
         }
 
         .ticket-card::before {
@@ -86,6 +88,7 @@
 
         .ticket-content {
             margin-bottom: 24px;
+            overflow: visible;
         }
 
         .ticket-title {
@@ -101,6 +104,15 @@
             line-height: 1.6;
             margin-bottom: 20px;
             font-size: 1rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            max-height: none;
+            overflow: visible;
+            display: block;
+            width: 100%;
+            min-height: auto;
+            text-overflow: unset;
         }
 
         .ticket-meta {
@@ -318,6 +330,20 @@
                 width: 95%;
                 margin: 10% auto;
             }
+        }
+
+        /* Ensure tickets grid doesn't restrict card heights */
+        .tickets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+        .tickets-grid .ticket-card {
+            height: auto;
+            min-height: auto;
+            max-height: none;
         }
     </style>
 </head>
