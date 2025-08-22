@@ -1588,11 +1588,11 @@ function displayManagerTickets() {
                 </div>
                 ` : `
                 <div class="ticket-actions" style="display:flex; justify-content:flex-end; gap:10px;">
-                    ${latestNote ? `<button class="btn-edit btn-status-small" onclick='openStatusDescriptionModal(${JSON.stringify(latestNote)})'>
+                    <button class="btn-edit btn-status-small" onclick="viewTicketStatusFromManager('${ticket.id}')">
                         <i class="fas fa-eye"></i> View Status
-                    </button>` : ''}
+                    </button>
                     <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${ticket.id}')">
-                        <i class="fas fa-edit"></i> Status
+                        <i class="fas fa-edit"></i> Change Status
                     </button>
                 </div>
                 `}
