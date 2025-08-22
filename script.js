@@ -1186,7 +1186,13 @@ function createTicketHTML(ticket) {
                     <h4>${ticket.id} - ${ticket.issueType}</h4>
                     <div class="ticket-meta">
                         <span><i class="fas fa-user"></i> ${ticket.mobileOrUserId}</span>
-                        <span><i class="fas fa-calendar"></i> ${new Date(ticket.createdAt).toLocaleDateString()}</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(ticket.createdAt).toLocaleString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</span>
                         <span><i class="fas fa-user-tie"></i> ${ticket.createdBy}</span>
                     </div>
                 </div>
@@ -1524,7 +1530,13 @@ function displayManagerTickets() {
                         <div class="ticket-meta">
                             <span><i class="fas fa-hashtag"></i> ${code}</span>
                             <span><i class="fas fa-user"></i> ${ticket.mobileOrUserId}</span>
-                            <span><i class="fas fa-calendar"></i> ${new Date(ticket.createdAt).toLocaleDateString()}</span>
+                            <span><i class="fas fa-calendar"></i> ${new Date(ticket.createdAt).toLocaleString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</span>
                             <span><i class="fas fa-user-plus"></i> ${ticket.createdBy || 'Staff'}</span>
                             ${assignedByLabel ? `<span><i class=\"fas fa-user-tie\"></i> Assigned By: ${assignedByLabel}</span>` : ''}
                             ${assignedStaffLabel ? `<span><i class=\"fas fa-user-check\"></i> Assigned Staff: ${assignedStaffLabel}</span>` : ''}
@@ -1550,7 +1562,13 @@ function displayManagerTickets() {
                          </div>
                      </div>
                      ${ticket.statusHistory && ticket.statusHistory.length > 0 ? `
-                         <span class="status-updated">Last updated: ${new Date(ticket.statusHistory[ticket.statusHistory.length - 1].changedAt).toLocaleDateString()}</span>
+                         <span class="status-updated">Last updated: ${new Date(ticket.statusHistory[ticket.statusHistory.length - 1].changedAt).toLocaleString('en-US', { 
+                             year: 'numeric', 
+                             month: 'short', 
+                             day: 'numeric',
+                             hour: '2-digit',
+                             minute: '2-digit'
+                         })}</span>
                          ${ticket.statusHistory[ticket.statusHistory.length - 1].description ? `
                          <p class="status-note">${ticket.statusHistory[ticket.statusHistory.length - 1].description}</p>
                          ` : ''}
@@ -1570,7 +1588,13 @@ function displayManagerTickets() {
                                 ${ticket.statusHistory.map(history => `
                                     <div class="status-history-item">
                                         <span class="status-badge-small status-${history.status}">${history.status}</span>
-                                        <span class="status-date">${new Date(history.changedAt).toLocaleDateString()}</span>
+                                        <span class="status-date">${new Date(history.changedAt).toLocaleString('en-US', { 
+                                            year: 'numeric', 
+                                            month: 'short', 
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}</span>
                                         ${history.description ? `<span class="status-desc">${history.description}</span>` : ''}
                                     </div>
                                 `).join('')}

@@ -33,16 +33,33 @@ function get_pdo(): PDO {
     if ($pdo instanceof PDO) return $pdo;
 
     try {
-        // Try multiple paths for config files (production first, then local fallback)
-        $configPaths = [
-            __DIR__ . '/../config.php',           // Production config first (API folder parent)
-            __DIR__ . '/../../config.php',        // Two levels up
-            __DIR__ . '/../../../config.php',     // Three levels up
-            dirname(__DIR__) . '/config.php',     // Alternative approach
-            $_SERVER['DOCUMENT_ROOT'] . '/config.php', // Document root
-            $_SERVER['DOCUMENT_ROOT'] . '/query-desk/config.php', // Query desk subfolder
-            __DIR__ . '/../config.local.php',     // Local development config as fallback
-        ];
+        // Detect environment and prioritize config accordingly
+        $isLocalDev = php_sapi_name() === 'cli' || 
+                      (isset($_SERVER['HTTP_HOST']) && ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['HTTP_HOST'] === '127.0.0.1'));
+        
+        if ($isLocalDev && file_exists(__DIR__ . '/../config.local.php')) {
+            // Local development - use local config first
+            $configPaths = [
+                __DIR__ . '/../config.local.php',     // Local development config first
+                __DIR__ . '/../config.php',           // Production config as fallback
+                __DIR__ . '/../../config.php',        // Two levels up
+                __DIR__ . '/../../../config.php',     // Three levels up
+                dirname(__DIR__) . '/config.php',     // Alternative approach
+                $_SERVER['DOCUMENT_ROOT'] . '/config.php', // Document root
+                $_SERVER['DOCUMENT_ROOT'] . '/query-desk/config.php', // Query desk subfolder
+            ];
+        } else {
+            // Production - use production config first
+            $configPaths = [
+                __DIR__ . '/../config.php',           // Production config first (API folder parent)
+                __DIR__ . '/../../config.php',        // Two levels up
+                __DIR__ . '/../../../config.php',     // Three levels up
+                dirname(__DIR__) . '/config.php',     // Alternative approach
+                $_SERVER['DOCUMENT_ROOT'] . '/config.php', // Document root
+                $_SERVER['DOCUMENT_ROOT'] . '/query-desk/config.php', // Query desk subfolder
+                __DIR__ . '/../config.local.php',     // Local development config as fallback
+            ];
+        }
         
         $configLoaded = false;
         $loadedPath = '';
