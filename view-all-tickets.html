@@ -368,6 +368,22 @@
                 justify-content: center;
             }
 
+            /* Refresh Section Styling */
+            .refresh-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .refresh-btn {
+                width: 100%;
+            }
+
+            .last-updated {
+                width: 100%;
+                text-align: center;
+            }
+
             .modal-content {
                 width: 95%;
                 margin: 10% auto;
@@ -386,6 +402,75 @@
             height: auto;
             min-height: auto;
             max-height: none;
+        }
+
+        .last-updated.recent {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Status Update Notifications */
+        .status-update-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notification-content i {
+            color: #93c5fd;
+            font-size: 18px;
+        }
+
+        .notification-content span {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .notification-close:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
@@ -475,6 +560,22 @@
         // Check authentication and set user role
         document.addEventListener('DOMContentLoaded', function() {
             checkAuthentication();
+            
+            // Auto-refresh tickets every 30 seconds to show status updates from managers
+            setInterval(() => {
+                if (currentUserRole && allTickets.length > 0) {
+                    console.log('Auto-refreshing tickets to check for status updates...');
+                    loadTickets();
+                }
+            }, 30000); // 30 seconds
+            
+            // Refresh when page becomes visible (user switches back to tab)
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden && currentUserRole && allTickets.length > 0) {
+                    console.log('Page became visible, refreshing tickets...');
+                    loadTickets();
+                }
+            });
         });
 
         function checkAuthentication() {
@@ -502,6 +603,14 @@
         async function loadTickets() {
             try {
                 showLoading(true);
+                
+                // Add loading state to refresh button
+                const refreshBtn = document.querySelector('.refresh-btn');
+                if (refreshBtn) {
+                    refreshBtn.classList.add('loading');
+                    refreshBtn.innerHTML = '<i class="fas fa-spinner"></i> Refreshing...';
+                }
+                
                 console.log('Loading tickets for role:', currentUserRole);
                 
                 // Determine correct API base URL
@@ -547,10 +656,12 @@
                     allTickets = data.tickets;
                     console.log('Total tickets loaded:', allTickets.length);
                     displayTickets(allTickets);
+                    updateLastUpdatedTime();
                 } else {
                     console.log('No tickets in response');
                     allTickets = [];
                     displayTickets([]);
+                    updateLastUpdatedTime();
                 }
                 
             } catch (error) {
@@ -558,6 +669,13 @@
                 showError('Failed to load tickets: ' + error.message);
             } finally {
                 showLoading(false);
+                
+                // Reset refresh button state
+                const refreshBtn = document.querySelector('.refresh-btn');
+                if (refreshBtn) {
+                    refreshBtn.classList.remove('loading');
+                    refreshBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh Tickets';
+                }
             }
         }
 
@@ -577,6 +695,86 @@
             
             const ticketsHTML = tickets.map(ticket => createTicketHTML(ticket)).join('');
             ticketsList.innerHTML = ticketsHTML;
+            
+            // Check for status updates and show notifications
+            checkForStatusUpdates(tickets);
+        }
+
+        // Check for status updates and show notifications
+        function checkForStatusUpdates(newTickets) {
+            // Get previously stored tickets for comparison
+            const storedTickets = localStorage.getItem('tickets') || '[]';
+            const previousTickets = JSON.parse(storedTickets);
+            
+            if (previousTickets.length === 0) {
+                // First time loading, just store current tickets
+                localStorage.setItem('tickets', JSON.stringify(newTickets));
+                return;
+            }
+            
+            // Check for status changes
+            const statusUpdates = [];
+            newTickets.forEach(newTicket => {
+                const oldTicket = previousTickets.find(t => t.id === newTicket.id);
+                if (oldTicket && oldTicket.status !== newTicket.status) {
+                    statusUpdates.push({
+                        ticketCode: newTicket.ticketCode || newTicket.id,
+                        oldStatus: oldTicket.status,
+                        newStatus: newTicket.status,
+                        issueType: newTicket.issueType || 'Unknown'
+                    });
+                }
+            });
+            
+            // Show notifications for status updates
+            if (statusUpdates.length > 0) {
+                showStatusUpdateNotifications(statusUpdates);
+            }
+            
+            // Update stored tickets
+            localStorage.setItem('tickets', JSON.stringify(newTickets));
+        }
+
+        // Show status update notifications
+        function showStatusUpdateNotifications(updates) {
+            updates.forEach(update => {
+                const notification = document.createElement('div');
+                notification.className = 'status-update-notification';
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas fa-info-circle"></i>
+                        <span><strong>Ticket ${update.ticketCode}</strong> status changed from <strong>${update.oldStatus}</strong> to <strong>${update.newStatus}</strong></span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="notification-close">&times;</button>
+                    </div>
+                `;
+                
+                // Add to page
+                document.body.appendChild(notification);
+                
+                // Auto-remove after 8 seconds
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 8000);
+            });
+        }
+
+        // Update last updated time
+        function updateLastUpdatedTime() {
+            const lastUpdatedElement = document.getElementById('lastUpdated');
+            if (lastUpdatedElement) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                const dateString = now.toLocaleDateString();
+                lastUpdatedElement.textContent = `Last updated: ${dateString} at ${timeString}`;
+                lastUpdatedElement.className = 'last-updated recent';
+                
+                // Remove recent class after 5 seconds
+                setTimeout(() => {
+                    lastUpdatedElement.className = 'last-updated';
+                }, 5000);
+            }
         }
 
         // Create ticket HTML
