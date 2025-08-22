@@ -699,11 +699,17 @@
                 
                 if (data.ok && data.tickets) {
                     allTickets = data.tickets;
+                    console.log('=== TICKETS LOADED SUCCESSFULLY ===');
                     console.log('Total tickets loaded:', allTickets.length);
+                    console.log('All tickets data:', allTickets);
+                    console.log('First ticket sample:', allTickets[0]);
+                    console.log('Current user role:', currentUserRole);
+                    console.log('Current user email:', currentUserEmail);
                     displayTickets(allTickets);
                     updateLastUpdatedTime();
                 } else {
                     console.log('No tickets in response');
+                    console.log('Response data:', data);
                     allTickets = [];
                     displayTickets([]);
                     updateLastUpdatedTime();
@@ -729,7 +735,15 @@
             const ticketsList = document.getElementById('ticketsList');
             const noTicketsMessage = document.getElementById('noTicketsMessage');
             
+            // Debug: Log what tickets are being displayed
+            console.log('=== DISPLAY TICKETS FUNCTION ===');
+            console.log('Current user role:', currentUserRole);
+            console.log('Current user email:', currentUserEmail);
+            console.log('Tickets to display:', tickets);
+            console.log('Number of tickets:', tickets ? tickets.length : 0);
+            
             if (!tickets || tickets.length === 0) {
+                console.log('No tickets to display, showing empty message');
                 ticketsList.style.display = 'none';
                 noTicketsMessage.style.display = 'block';
                 return;
@@ -737,6 +751,17 @@
 
             ticketsList.style.display = 'grid';
             noTicketsMessage.style.display = 'none';
+            
+            // Debug: Show ticket details
+            tickets.forEach((ticket, index) => {
+                console.log(`Ticket ${index + 1}:`, {
+                    id: ticket.id,
+                    code: ticket.ticketCode,
+                    createdBy: ticket.createdBy,
+                    status: ticket.status,
+                    issueType: ticket.issueType
+                });
+            });
             
             const ticketsHTML = tickets.map(ticket => createTicketHTML(ticket)).join('');
             ticketsList.innerHTML = ticketsHTML;
