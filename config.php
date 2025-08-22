@@ -13,7 +13,7 @@ define('DB_PASS', 'HimaSupport@2025');   // Your hosting database password
 define('DB_PORT', '3306');                // Default MySQL port
 
 // Application Configuration (Hosting)
-define('APP_URL', 'https://ticket.himaapp.in/query-desk/');  // Your website URL
+define('APP_URL', 'https://ticket.himaapp.in/');  // Your website URL
 define('UPLOAD_PATH', __DIR__ . '/uploads/');             // Upload directory path
 
 // Security Configuration (Local - no HTTPS)
