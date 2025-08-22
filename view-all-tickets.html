@@ -511,10 +511,6 @@
             <a href="create-ticket.html" class="action-btn" style="background: #10b981;">
                 <i class="fas fa-plus"></i> Create New Ticket
             </a>
-            <!-- Test button to verify modal works -->
-            <button onclick="testModal()" class="action-btn" style="background: #f59e0b;">
-                <i class="fas fa-bug"></i> Test Modal
-            </button>
         </div>
 
         <div class="tickets-section">
@@ -705,24 +701,6 @@
             checkForStatusUpdates(tickets);
         }
 
-        // Test function to verify modal works
-        function testModal() {
-            console.log('=== TEST MODAL FUNCTION CALLED ===');
-            alert('Test modal function is working!');
-            
-            const modal = document.getElementById('changeStatusModal');
-            console.log('Modal element found:', modal);
-            
-            if (modal) {
-                modal.style.display = 'block';
-                console.log('Modal should now be visible');
-                alert('Modal opened successfully!');
-            } else {
-                console.error('Modal not found!');
-                alert('Modal not found!');
-            }
-        }
-
         // Check for status updates and show notifications
         function checkForStatusUpdates(newTickets) {
             // Get previously stored tickets for comparison
@@ -863,12 +841,16 @@
                         </div>
                         
                         <div class="ticket-actions">
+                            ${(currentUserRole === 'manager' || (currentUserRole === 'staff' && ticket.createdBy === currentUserEmail)) ? `
                             <button onclick="editTicket(${ticket.id})" class="action-btn edit-btn">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
+                            ` : ''}
+                            ${currentUserRole === 'manager' ? `
                             <button onclick="changeTicketStatus('${ticket.ticketCode || ticket.id}')" class="action-btn status-btn">
                                 <i class="fas fa-exchange-alt"></i> Change Status
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -944,15 +926,28 @@
             }
         }
 
-        // Edit ticket (manager only)
+        // Edit ticket function with role-based permissions
         function editTicket(ticketId) {
             console.log('=== EDIT TICKET FUNCTION CALLED ===');
             console.log('Ticket ID:', ticketId);
+            console.log('Current user role:', currentUserRole);
             
             // Find the ticket to edit
             const ticket = allTickets.find(t => t.id == ticketId);
             if (!ticket) {
                 alert('Ticket not found');
+                return;
+            }
+            
+            // Check permissions: Staff can only edit their own tickets, managers can edit any
+            if (currentUserRole === 'staff') {
+                // Staff can only edit tickets they created
+                if (ticket.createdBy !== currentUserEmail) {
+                    alert('You can only edit tickets that you created.');
+                    return;
+                }
+            } else if (currentUserRole !== 'manager') {
+                alert('You do not have permission to edit tickets.');
                 return;
             }
             
@@ -1113,8 +1108,11 @@
             console.log('All tickets:', allTickets);
             console.log('Current user role:', currentUserRole);
             
-            // Immediate alert to confirm function is called
-            alert('Status button clicked! Ticket ID: ' + ticketId);
+            // Check if user has permission to change status
+            if (currentUserRole !== 'manager') {
+                alert('Only managers can change ticket status. Staff can only view tickets.');
+                return;
+            }
             
             currentTicketIdForStatus = ticketId;
             
