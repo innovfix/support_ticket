@@ -993,7 +993,7 @@
                         </div>
                         
                         <div class="ticket-actions">
-                            ${(currentUserRole === 'manager' || (currentUserRole === 'staff' && ticket.createdBy === currentUserEmail)) ? `
+                            ${(currentUserRole === 'manager' || currentUserRole === 'staff') ? `
                             <button onclick="editTicket(${ticket.id})" class="action-btn edit-btn">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
@@ -1095,14 +1095,8 @@
                 return;
             }
             
-            // Check permissions: Staff can only edit their own tickets, managers can edit any
-            if (currentUserRole === 'staff') {
-                // Staff can only edit tickets they created
-                if (ticket.createdBy !== currentUserEmail) {
-                    alert('You can only edit tickets that you created.');
-                    return;
-                }
-            } else if (currentUserRole !== 'manager') {
+            // Check permissions: Staff and managers can edit any ticket
+            if (currentUserRole !== 'staff' && currentUserRole !== 'manager') {
                 alert('You do not have permission to edit tickets.');
                 return;
             }
