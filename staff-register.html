@@ -54,7 +54,7 @@
 			btnText.style.display='none'; btnLoading.style.display='inline-block';
 			try{
 				const origin = window.location.origin||'';
-				const base = (origin.includes('127.0.0.1:5500')||origin.includes('localhost:5500')) ? 'http://localhost/query-desk/hosting-files/api/' : 'api/';
+				const base = (origin.includes('127.0.0.1:5500')||origin.includes('localhost:5500')) ? 'http://localhost/hima-support/api/' : 'api/';
 				const res = await fetch(base + 'staff-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
 				const data = await res.json();
 				if(!res.ok || !data.ok) throw new Error(data.error||'Registration failed');

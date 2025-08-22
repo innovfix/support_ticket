@@ -87,7 +87,12 @@
     <script src="script.js?v=1.3"></script>
     <script>
         async function fetchWithBase(url, options = {}) {
-            const response = await fetch(url, options);
+            const origin = window.location.origin || '';
+            const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
+                ? 'http://localhost/hima-support/api/' 
+                : 'api/';
+            const fullUrl = base + url.replace(/^\/?api\/?/, '');
+            const response = await fetch(fullUrl, options);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

@@ -87,7 +87,11 @@
         async function loadStaffList() {
             try {
                 console.log('Loading staff list...');
-                const response = await fetch('api/staff-list.php');
+                const origin = window.location.origin || '';
+            const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
+                ? 'http://localhost/hima-support/api/' 
+                : 'api/';
+            const response = await fetch(base + 'staff-list.php');
                 console.log('Response status:', response.status);
                 
                 if (response.ok) {
@@ -179,7 +183,7 @@
         // View staff details
         async function viewStaffDetails(staffId) {
             try {
-                const response = await fetch(`api/staff-list.php?id=${staffId}`);
+                const response = await fetch(`${base}staff-list.php?id=${staffId}`);
                 if (response.ok) {
                     const staff = await response.json();
                     const member = staff.find(s => s.id === staffId);
