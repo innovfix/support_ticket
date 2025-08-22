@@ -39,13 +39,17 @@ function get_pdo(): PDO {
             __DIR__ . '/../../config.php',        // Two levels up
             __DIR__ . '/../../../config.php',     // Three levels up
             dirname(__DIR__) . '/config.php',     // Alternative approach
+            $_SERVER['DOCUMENT_ROOT'] . '/config.php', // Document root
+            $_SERVER['DOCUMENT_ROOT'] . '/query-desk/config.php', // Query desk subfolder
         ];
         
         $configLoaded = false;
+        $loadedPath = '';
         foreach ($configPaths as $configPath) {
             if (file_exists($configPath)) {
                 require_once $configPath;
                 $configLoaded = true;
+                $loadedPath = $configPath;
                 error_log("Config loaded from: " . $configPath);
                 break;
             }
@@ -53,35 +57,37 @@ function get_pdo(): PDO {
         
         if (!$configLoaded) {
             error_log("ERROR: config.php not found in any of these paths: " . implode(', ', $configPaths));
-            throw new Exception("Configuration file not found");
+            throw new Exception("Configuration file not found. Searched paths: " . implode(', ', $configPaths));
         }
         
         // Check if get_hosting_pdo function exists
         if (!function_exists('get_hosting_pdo')) {
-            error_log("ERROR: get_hosting_pdo function not found in config.php");
-            throw new Exception("Database connection function not found");
+            error_log("ERROR: get_hosting_pdo function not found in config.php loaded from: " . $loadedPath);
+            throw new Exception("Database connection function not found in config file");
         }
         
         $pdo = get_hosting_pdo();
         if (!$pdo instanceof PDO) {
             error_log("ERROR: get_hosting_pdo did not return a valid PDO object");
-            throw new Exception("Database connection failed");
+            throw new Exception("Database connection failed - invalid PDO object returned");
         }
         
-        error_log("Database connection successful");
+        error_log("Database connection successful from config: " . $loadedPath);
         return $pdo;
         
     } catch (Exception $e) {
         error_log("Database connection error: " . $e->getMessage());
         error_log("Stack trace: " . $e->getTraceAsString());
         
-        // Fallback to environment variables if config fails
+        // Fallback to hardcoded credentials if config fails
         try {
-            $host = env('DB_HOST', 'localhost');
-            $port = env('DB_PORT', '3306');
-            $db   = env('DB_NAME', 'u743445510_hima_support');
-            $user = env('DB_USER', 'u743445510_hima_support');
-            $pass = env('DB_PASS', 'HimaSupport@2025');
+            error_log("Attempting fallback database connection with hardcoded credentials");
+            
+            $host = 'localhost';
+            $port = '3306';
+            $db   = 'u743445510_hima_support';
+            $user = 'u743445510_hima_support';
+            $pass = 'HimaSupport@2025';
 
             $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $db);
             $pdo = new PDO($dsn, $user, $pass, [
@@ -90,12 +96,12 @@ function get_pdo(): PDO {
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
             
-            error_log("Fallback database connection successful using environment variables");
+            error_log("Fallback database connection successful using hardcoded credentials");
             return $pdo;
             
         } catch (PDOException $pdoError) {
             error_log("Fallback database connection also failed: " . $pdoError->getMessage());
-            throw new Exception("All database connection attempts failed: " . $e->getMessage() . " | PDO: " . $pdoError->getMessage());
+            throw new Exception("All database connection attempts failed. Config error: " . $e->getMessage() . " | PDO error: " . $pdoError->getMessage());
         }
     }
 }
