@@ -18,9 +18,11 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
             position: relative;
-            overflow: visible;
-            min-height: auto;
-            height: auto;
+            overflow: hidden;
+            min-height: 400px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
         }
 
         .ticket-card::before {
@@ -88,7 +90,11 @@
 
         .ticket-content {
             margin-bottom: 24px;
-            overflow: visible;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
         .ticket-title {
@@ -107,12 +113,38 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             white-space: pre-wrap;
-            max-height: none;
-            overflow: visible;
-            display: block;
+            max-height: 120px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
             width: 100%;
-            min-height: auto;
-            text-overflow: unset;
+            flex: 1;
+            text-overflow: ellipsis;
+            position: relative;
+        }
+
+        .ticket-description:hover {
+            overflow: visible;
+            max-height: none;
+            background: rgba(31, 41, 55, 0.95);
+            padding: 10px;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: calc(100% - 20px);
+        }
+
+        .ticket-description.truncated::after {
+            content: '...';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            padding: 0 4px;
+            color: #9ca3af;
+            font-weight: bold;
         }
 
         .ticket-meta {
@@ -120,6 +152,7 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
             margin-bottom: 20px;
+            margin-top: auto;
         }
 
         .meta-item {
@@ -141,6 +174,7 @@
             gap: 12px;
             justify-content: flex-end;
             flex-wrap: wrap;
+            margin-top: auto;
         }
 
         .action-btn {
@@ -378,6 +412,22 @@
                 justify-content: center;
             }
 
+            .ticket-card {
+                min-height: 350px;
+                height: 350px;
+            }
+
+            .tickets-grid .ticket-card {
+                height: 350px;
+                min-height: 350px;
+                max-height: 350px;
+            }
+
+            .ticket-description {
+                max-height: 100px;
+                -webkit-line-clamp: 4;
+            }
+
             /* Refresh Section Styling */
             .refresh-section {
                 flex-direction: column;
@@ -400,18 +450,18 @@
             }
         }
 
-        /* Ensure tickets grid doesn't restrict card heights */
+        /* Ensure tickets grid maintains consistent card heights */
         .tickets-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
-            align-items: start;
+            align-items: stretch;
         }
 
         .tickets-grid .ticket-card {
-            height: auto;
-            min-height: auto;
-            max-height: none;
+            height: 400px;
+            min-height: 400px;
+            max-height: 400px;
         }
 
         .last-updated.recent {
@@ -997,7 +1047,7 @@
                         
                         <div class="ticket-content">
                             <h4 class="ticket-title">${ticket.issueType || 'No Issue Type'}</h4>
-                            <p class="ticket-description">${ticket.description || ticket.issueDescription || 'No description provided'}</p>
+                            <p class="ticket-description ${(ticket.description || ticket.issueDescription || '').length > 150 ? 'truncated' : ''}" title="${(ticket.description || ticket.issueDescription || '').length > 150 ? (ticket.description || ticket.issueDescription || 'No description provided') : ''}">${ticket.description || ticket.issueDescription || 'No description provided'}</p>
                             
                             <div class="ticket-meta">
                                 <div class="meta-item">
