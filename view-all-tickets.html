@@ -818,10 +818,14 @@
             }
             
             // Debug: Log all ticket fields to see what's available
-            console.log('Ticket data for status view:', ticket);
-            console.log('Available fields:', Object.keys(ticket));
+            console.log('=== TICKET DATA DEBUG ===');
+            console.log('Full ticket object:', ticket);
+            console.log('All available fields:', Object.keys(ticket));
             console.log('statusDescription field:', ticket.statusDescription);
             console.log('status_description field:', ticket.status_description);
+            console.log('status field:', ticket.status);
+            console.log('Raw ticket data:', JSON.stringify(ticket, null, 2));
+            console.log('=== END DEBUG ===');
             
             // Populate the status view modal
             const statusModal = document.getElementById('viewStatusModal');
@@ -872,6 +876,9 @@
                 
                 // Show the modal
                 statusModal.style.display = 'block';
+                
+                // Test database status for debugging
+                testDatabaseStatus(ticketId);
             } else {
                 alert('Status view modal not found!');
             }
@@ -882,6 +889,27 @@
             const modal = document.getElementById('viewStatusModal');
             if (modal) {
                 modal.style.display = 'none';
+            }
+        }
+
+        // Test function to check database directly
+        async function testDatabaseStatus(ticketId) {
+            try {
+                console.log('=== TESTING DATABASE STATUS ===');
+                const response = await fetch(`api/tickets-list.php`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const ticket = data.tickets.find(t => t.id == ticketId);
+                    if (ticket) {
+                        console.log('Database ticket data:', ticket);
+                        console.log('statusDescription from DB:', ticket.statusDescription);
+                        console.log('Raw status_description:', ticket.status_description);
+                    } else {
+                        console.log('Ticket not found in API response');
+                    }
+                }
+            } catch (error) {
+                console.error('Error testing database:', error);
             }
         }
 
