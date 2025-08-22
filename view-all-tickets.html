@@ -12,24 +12,20 @@
     <div class="dashboard-header-bar">
         <div class="header-left">
             <div class="app-icon-small">
-                <i class="fas fa-users"></i>
+                <i class="fas fa-ticket-alt"></i>
             </div>
-            <span class="app-name">Query Desk - Staff</span>
+            <span class="app-name">Query Desk</span>
         </div>
         <div class="header-right">
-            <a href="staff-dashboard.html" class="back-btn">← Back to Staff Dashboard</a>
+            <a href="staff-dashboard.html" class="action-btn" id="backButton">← Back to Dashboard</a>
             <button onclick="logout()" class="action-btn logout-btn">Logout</button>
         </div>
     </div>
 
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <h1><i class="fas fa-ticket-alt"></i> View All My Tickets</h1>
-            <p>Track and manage all your assigned support tickets</p>
-            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 0.9rem; color: #3b82f6;">
-                <i class="fas fa-info-circle"></i> 
-                <strong>Note:</strong> Currently showing all tickets. New tickets you create will be properly associated with your account.
-            </div>
+            <h1><i class="fas fa-ticket-alt"></i> View All Tickets</h1>
+            <p id="headerDescription">Track and manage all support tickets</p>
         </div>
         
         <div class="dashboard-actions">
@@ -43,25 +39,32 @@
                     <option value="closed">Closed</option>
                 </select>
             </div>
-            <button onclick="loadMyTickets()" class="action-btn" style="background: #3b82f6;">
+            <button onclick="loadTickets()" class="action-btn" style="background: #3b82f6;">
                 <i class="fas fa-sync"></i> Refresh Tickets
             </button>
-
             <a href="create-ticket.html" class="action-btn" style="background: #10b981;">
                 <i class="fas fa-plus"></i> Create New Ticket
             </a>
         </div>
 
         <div class="tickets-section">
-            <div id="myTicketsList" class="tickets-grid" style="border: 2px dashed #666; padding: 20px; min-height: 200px;">
-                <div style="text-align: center; color: #666; padding: 40px;">
-                    <i class="fas fa-ticket-alt fa-3x" style="margin-bottom: 20px; display: block;"></i>
-                    <p>Tickets will be loaded here...</p>
-                    <p style="font-size: 0.9rem; margin-top: 10px;">Click "Refresh Tickets" to load tickets</p>
-                </div>
+            <div id="loadingMessage" class="loading-message">
+                <p><i class="fas fa-spinner fa-spin"></i> Loading tickets...</p>
+            </div>
+            <div id="ticketsList" class="tickets-grid" style="display: none;">
+                <!-- Tickets will be loaded here -->
             </div>
             <div id="noTicketsMessage" class="no-tickets-message" style="display: none;">
-                <p>No tickets found.</p>
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-inbox fa-3x" style="color: #ddd; margin-bottom: 20px;"></i>
+                    <p>No tickets found.</p>
+                    <p style="font-size: 0.9rem; margin-top: 10px;">
+                        There are no tickets in the system yet.
+                    </p>
+                    <a href="create-ticket.html" class="action-btn" style="margin-top: 20px;">
+                        <i class="fas fa-plus"></i> Create Your First Ticket
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -81,461 +84,292 @@
             </div>
         </div>
     </div>
-    
-
 
     <script src="script.js?v=1.3"></script>
     <script>
-        async function fetchWithBase(url, options = {}) {
-            const origin = window.location.origin || '';
-            const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
-                ? 'http://localhost/hima-support/api/' 
-                : 'api/';
-            const fullUrl = base + url.replace(/^\/?api\/?/, '');
-            const response = await fetch(fullUrl, options);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response;
-        }
+        let allTickets = [];
+        let currentUserRole = '';
+        let currentUserEmail = '';
 
-        // Check if user is logged in as staff or manager
-        if (!sessionStorage.getItem('staffLoggedIn') && !sessionStorage.getItem('managerLoggedIn')) {
-            window.location.href = 'staff-login.html';
-        }
-        
-
-
-
-
-        // Load tickets when page loads
+        // Check authentication and set user role
         document.addEventListener('DOMContentLoaded', function() {
-            loadMyTickets();
+            checkAuthentication();
         });
 
-        // Load my tickets
-        async function loadMyTickets() {
-            try {
-                console.log('Loading tickets...');
-                const response = await fetchWithBase('api/tickets-list.php');
-                console.log('Response:', response);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Data:', data);
-                    
-                    if (data.ok && data.tickets) {
-                        console.log('Tickets found:', data.tickets.length);
-                        // For now, show all tickets to staff (we'll refine filtering later)
-                        let myTickets = data.tickets;
+        function checkAuthentication() {
+            if (sessionStorage.getItem('staffLoggedIn')) {
+                currentUserRole = 'staff';
+                currentUserEmail = sessionStorage.getItem('staffEmail');
+                document.getElementById('headerDescription').textContent = 'Track and manage all your assigned support tickets';
+                document.getElementById('backButton').href = 'staff-dashboard.html';
+                document.getElementById('backButton').textContent = '← Back to Staff Dashboard';
+            } else if (sessionStorage.getItem('managerLoggedIn')) {
+                currentUserRole = 'manager';
+                currentUserEmail = sessionStorage.getItem('managerEmail');
+                document.getElementById('headerDescription').textContent = 'Track and manage all support tickets in the system';
+                document.getElementById('backButton').href = 'dashboard.html';
+                document.getElementById('backButton').textContent = '← Back to Manager Dashboard';
+            } else {
+                window.location.href = 'staff-login.html';
+                return;
+            }
+            
+            loadTickets();
+        }
 
-                        displayMyTickets(myTickets);
-                    } else {
-                        console.log('No tickets in response or response not ok');
-                        displayMyTickets([]);
-                    }
-                } else {
-                    console.log('Response not ok:', response.status);
-                    displayMyTickets([]);
+        // Load tickets
+        async function loadTickets() {
+            try {
+                showLoading(true);
+                console.log('Loading tickets for role:', currentUserRole);
+                
+                // Determine correct API base URL
+                const origin = window.location.origin || '';
+                const base = (origin.includes('127.0.0.1:5500') || origin.includes('localhost:5500')) 
+                    ? 'http://localhost/hima-support/api/' 
+                    : 'api/';
+                
+                console.log('API Base URL:', base);
+                
+                const response = await fetch(base + 'tickets-list.php');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
+                const data = await response.json();
+                console.log('Tickets data:', data);
+                
+                if (data.ok && data.tickets) {
+                    allTickets = data.tickets;
+                    console.log('Total tickets loaded:', allTickets.length);
+                    displayTickets(allTickets);
+                } else {
+                    console.log('No tickets in response');
+                    allTickets = [];
+                    displayTickets([]);
+                }
+                
             } catch (error) {
                 console.error('Error loading tickets:', error);
-                displayMyTickets([]);
+                showError('Failed to load tickets: ' + error.message);
+            } finally {
+                showLoading(false);
             }
         }
 
         // Display tickets
-        function displayMyTickets(tickets) {
-            const ticketsList = document.getElementById('myTicketsList');
+        function displayTickets(tickets) {
+            const ticketsList = document.getElementById('ticketsList');
             const noTicketsMessage = document.getElementById('noTicketsMessage');
             
             if (!tickets || tickets.length === 0) {
                 ticketsList.style.display = 'none';
                 noTicketsMessage.style.display = 'block';
-                noTicketsMessage.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <i class="fas fa-inbox fa-3x" style="color: #ddd; margin-bottom: 20px;"></i>
-                        <p>No tickets found for you.</p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">
-                            You haven't been assigned any tickets yet, or you haven't created any tickets.
-                        </p>
-                        <a href="create-ticket.html" class="action-btn" style="margin-top: 20px;">
-                            <i class="fas fa-plus"></i> Create Your First Ticket
-                        </a>
-                    </div>
-                `;
                 return;
             }
 
             ticketsList.style.display = 'grid';
             noTicketsMessage.style.display = 'none';
             
-            const ticketsHTML = tickets.map(ticket => createMyTicketHTML(ticket)).join('');
+            const ticketsHTML = tickets.map(ticket => createTicketHTML(ticket)).join('');
             ticketsList.innerHTML = ticketsHTML;
         }
 
         // Create ticket HTML
-        function createMyTicketHTML(ticket) {
+        function createTicketHTML(ticket) {
             try {
-                // Format the created date
+                // Format dates
                 const createdDate = new Date(ticket.createdAt).toLocaleDateString();
                 const createdTime = new Date(ticket.createdAt).toLocaleTimeString();
                 
-                // Get status color based on ticket status
-                let statusColor = '#10b981'; // default green
-                if (ticket.status === 'new') {
-                    statusColor = '#3b82f6'; // blue
-                } else if (ticket.status === 'resolved') {
-                    statusColor = '#f59e0b'; // amber
-                } else if (ticket.status === 'closed') {
-                    statusColor = '#6b7280'; // gray
-                } else if (ticket.status === 'in-progress') {
-                    statusColor = '#8b5cf6'; // purple
-                }
+                // Get status color
+                const statusColors = {
+                    'new': '#3b82f6',
+                    'in-progress': '#8b5cf6',
+                    'resolved': '#f59e0b',
+                    'closed': '#6b7280'
+                };
+                const statusColor = statusColors[ticket.status] || '#10b981';
                 
-                const html = `
-                    <div class="ticket-card" style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); color: #333;">
-                        <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <span class="ticket-code" style="font-weight: 600; font-size: 1.1rem; color: #333;">${ticket.ticketCode || 'N/A'}</span>
-                            <span class="ticket-status" style="padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; background: ${statusColor}; color: white;">${ticket.status || 'Unknown'}</span>
-                        </div>
-                        <div class="ticket-body">
-                            <h4 style="color: #333; margin-bottom: 10px;">${ticket.mobileOrUserId || 'N/A'}</h4>
-                            <p style="margin-bottom: 8px; color: #666;"><strong>Issue:</strong> ${ticket.issueType || 'N/A'}</p>
-                            <p style="margin-bottom: 8px; color: #666;"><strong>Description:</strong> ${ticket.issueDescription || 'N/A'}</p>
-                            <p style="margin-bottom: 8px; color: #666;"><strong>Created:</strong> ${createdDate} at ${createdTime}</p>
-                            <p style="margin-bottom: 8px; color: #666;"><strong>Assigned To:</strong> ${ticket.assignedToName || ticket.assignedTo || 'Not Assigned'}</p>
-                            <p style="margin-bottom: 8px; color: #666;"><strong>Assigned By:</strong> ${ticket.assignedByName || ticket.assignedBy || 'System'}</p>
-                            ${ticket.screenshot ? `<p style="margin-bottom: 8px; color: #666;"><strong>Screenshot:</strong> <a href="${ticket.screenshot}" target="_blank" style="color: #3b82f6; font-size: 0.9rem;">📷 View Screenshot</a></p>` : ''}
-                        </div>
-                        <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px;">
-                           ${ticket.statusDescription ? `<button onclick='showStatusDescription(${JSON.stringify(ticket.statusDescription)})' class="action-btn" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;"><i class=\"fas fa-eye\"></i> View Status</button>` : ''}
-                             <button onclick="editTicket('${ticket.ticketCode}')" class="action-btn" style="background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1;">
-                                 <i class="fas fa-edit"></i> Edit
-                             </button>
-                             <button onclick="deleteTicket('${ticket.ticketCode}')" class="action-btn" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; flex: 1;">
-                                 <i class="fas fa-trash"></i> Delete
-                             </button>
-                         </div>
-                        
-                     </div>
-                `;
+                // Get priority color
+                const priorityColors = {
+                    'High': '#ef4444',
+                    'Medium': '#f59e0b',
+                    'Low': '#10b981'
+                };
+                const priorityColor = priorityColors[ticket.priority] || '#6b7280';
                 
-                return html;
-            } catch (error) {
                 return `
-                    <div class="ticket-card" style="border: 2px solid #ef4444;">
+                    <div class="ticket-card">
                         <div class="ticket-header">
-                            <span class="ticket-code">ERROR</span>
-                            <span class="ticket-status">Error</span>
+                            <div class="ticket-info">
+                                <span class="ticket-code">${ticket.ticketCode || 'N/A'}</span>
+                                <span class="ticket-date">${createdDate} ${createdTime}</span>
+                            </div>
+                            <div class="ticket-status-badges">
+                                <span class="status-badge" style="background: ${statusColor};">${ticket.status || 'Unknown'}</span>
+                                <span class="priority-badge" style="background: ${priorityColor};">${ticket.priority || 'Medium'}</span>
+                            </div>
                         </div>
-                        <div class="ticket-body">
-                            <p><strong>Error:</strong> Failed to display ticket</p>
-                            <p><strong>Ticket Code:</strong> ${ticket.ticketCode || 'Unknown'}</p>
+                        
+                        <div class="ticket-content">
+                            <h4 class="ticket-title">${ticket.issueType || 'No Issue Type'}</h4>
+                            <p class="ticket-description">${ticket.issueDescription || 'No description provided'}</p>
+                            
+                            <div class="ticket-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>Created by: ${ticket.createdBy || 'Unknown'}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span>User ID: ${ticket.mobileOrUserId || 'N/A'}</span>
+                                </div>
+                                ${ticket.assignedToName ? `
+                                <div class="meta-item">
+                                    <i class="fas fa-user-check"></i>
+                                    <span>Assigned to: ${ticket.assignedToName}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="ticket-actions">
+                            <button onclick="viewTicketDetails(${ticket.id})" class="action-btn">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                            ${currentUserRole === 'manager' ? `
+                            <button onclick="editTicket(${ticket.id})" class="action-btn" style="background: #3b82f6;">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
+            } catch (error) {
+                console.error('Error creating ticket HTML:', error);
+                return `<div class="ticket-card error">Error displaying ticket</div>`;
             }
         }
 
         // Filter tickets by status
         function filterTickets() {
             const statusFilter = document.getElementById('statusFilter').value;
-
+            let filteredTickets = allTickets;
             
-            if (!statusFilter) {
-                // Show all tickets if no filter is selected
-                document.querySelectorAll('.ticket-card').forEach(ticket => {
-                    ticket.style.display = 'block';
-                });
-
-                return;
+            if (statusFilter) {
+                filteredTickets = allTickets.filter(ticket => ticket.status === statusFilter);
             }
             
-            // Filter tickets based on selected status
-            let visibleCount = 0;
-            document.querySelectorAll('.ticket-card').forEach(ticket => {
-                const statusElement = ticket.querySelector('.ticket-status');
-                if (statusElement) {
-                    const ticketStatus = statusElement.textContent.toLowerCase();
-                    const filterStatus = statusFilter.toLowerCase();
-    
-                    
-                    if (ticketStatus === filterStatus) {
-                        ticket.style.display = 'block';
-                        visibleCount++;
-                    } else {
-                        ticket.style.display = 'none';
-                    }
-                } else {
-    
-                    ticket.style.display = 'none';
-                }
-            });
-            
-
-        }
-
-        // Show full status description in a modal dialog
-        function showStatusDescription(note) {
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.background = 'rgba(0,0,0,0.6)';
-            overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.zIndex = '2000';
-
-            const modal = document.createElement('div');
-            modal.style.background = '#fff';
-            modal.style.color = '#111827';
-            modal.style.borderRadius = '12px';
-            modal.style.maxWidth = '520px';
-            modal.style.width = '90%';
-            modal.style.padding = '20px';
-            modal.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
-
-            modal.innerHTML = `
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin:0; font-size: 18px;">Status Description</h3>
-                    <button id="closeStatusDesc" style="background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#6b7280">&times;</button>
-                </div>
-                <div style="background:#f9fafb; border:1px solid #e5e7eb; padding:14px; border-radius:8px; white-space:pre-wrap; word-break: break-word; max-height: 260px; overflow:auto;">${note}</div>
-                <div style="text-align:right; margin-top:14px;">
-                    <button id="okStatusDesc" class="action-btn" style="background:#2563eb; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">OK</button>
-                </div>
-            `;
-
-            overlay.appendChild(modal);
-            document.body.appendChild(overlay);
-
-            function close() { document.body.removeChild(overlay); }
-            modal.querySelector('#closeStatusDesc').addEventListener('click', close);
-            modal.querySelector('#okStatusDesc').addEventListener('click', close);
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+            displayTickets(filteredTickets);
         }
 
         // View ticket details
-        async function viewTicketDetails(ticketCode) {
+        async function viewTicketDetails(ticketId) {
             try {
-                const response = await fetchWithBase('api/tickets-list.php');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.ok && data.tickets) {
-                        const ticket = data.tickets.find(t => t.ticketCode === ticketCode);
-                        if (ticket) {
-                            displayTicketDetails(ticket);
-                            document.getElementById('ticketDetailsModal').style.display = 'block';
-                        }
-                    }
+                const ticket = allTickets.find(t => t.id == ticketId);
+                if (!ticket) {
+                    alert('Ticket not found');
+                    return;
                 }
+                
+                const content = document.getElementById('ticketDetailsContent');
+                content.innerHTML = `
+                    <div class="ticket-details">
+                        <div class="detail-row">
+                            <strong>Ticket Code:</strong> ${ticket.ticketCode || 'N/A'}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Status:</strong> <span class="status-badge">${ticket.status || 'Unknown'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Issue Type:</strong> ${ticket.issueType || 'No Issue Type'}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Description:</strong> ${ticket.issueDescription || 'No description provided'}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Created By:</strong> ${ticket.createdBy || 'Unknown'}
+                        </div>
+                        <div class="detail-row">
+                            <strong>User ID:</strong> ${ticket.mobileOrUserId || 'N/A'}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Created:</strong> ${new Date(ticket.createdAt).toLocaleString()}
+                        </div>
+                        ${ticket.assignedToName ? `
+                        <div class="detail-row">
+                            <strong>Assigned To:</strong> ${ticket.assignedToName}
+                        </div>
+                        ` : ''}
+                        ${ticket.statusDescription ? `
+                        <div class="detail-row">
+                            <strong>Status Description:</strong> ${ticket.statusDescription}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                document.getElementById('ticketDetailsModal').style.display = 'block';
+                
             } catch (error) {
-                console.error('Error loading ticket details:', error);
+                console.error('Error viewing ticket details:', error);
+                alert('Error loading ticket details');
             }
         }
 
-        // Display ticket details in modal
-        function displayTicketDetails(ticket) {
-            const content = document.getElementById('ticketDetailsContent');
-                         content.innerHTML = `
-                 <div class="ticket-details">
-                     <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
-                     <p><strong>Mobile/User ID:</strong> ${ticket.mobileOrUserId}</p>
-                     <p><strong>Issue Type:</strong> ${ticket.issueType}</p>
-                     <p><strong>Description:</strong> ${ticket.issueDescription}</p>
-                     <p><strong>Status:</strong> <span class="status-badge ${ticket.status.toLowerCase().replace(' ', '-')}">${ticket.status}</span></p>
-                     <p><strong>Created At:</strong> ${ticket.createdAt}</p>
-                     <p><strong>Assigned To:</strong> ${ticket.assignedToName || 'Not Assigned'}</p>
-                     <p><strong>Assigned By:</strong> ${ticket.assignedByName || 'System'}</p>
-                     ${ticket.screenshot ? `<p><strong>Screenshot:</strong> <img src="${ticket.screenshot}" style="max-width: 120px; max-height: 120px; border-radius: 8px; margin-top: 10px;"></p>` : ''}
-                 </div>
-             `;
+        // Edit ticket (manager only)
+        function editTicket(ticketId) {
+            // Redirect to edit page or open edit modal
+            alert('Edit functionality will be implemented here');
         }
 
+        // Close ticket details modal
         function closeTicketDetailsModal() {
             document.getElementById('ticketDetailsModal').style.display = 'none';
         }
-        
-        // Edit ticket function
-        async function editTicket(ticketCode) {
-    
+
+        // Show loading state
+        function showLoading(show) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const ticketsList = document.getElementById('ticketsList');
+            const noTicketsMessage = document.getElementById('noTicketsMessage');
             
-            try {
-                // Get all tickets and find the specific one
-                const response = await fetchWithBase('api/tickets-list.php');
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.ok && data.tickets) {
-                        const ticket = data.tickets.find(t => t.ticketCode === ticketCode);
-                        
-                        if (ticket) {
-                            // Show edit form
-                            showEditForm(ticket);
-                        } else {
-                            alert('Ticket not found!');
-                        }
-                    } else {
-                        alert('Failed to load tickets data!');
-                    }
-                } else {
-                    alert('Failed to load tickets!');
-                }
-            } catch (error) {
-                console.error('Error loading ticket for edit:', error);
-                alert('Error loading ticket data!');
+            if (show) {
+                loadingMessage.style.display = 'block';
+                ticketsList.style.display = 'none';
+                noTicketsMessage.style.display = 'none';
+            } else {
+                loadingMessage.style.display = 'none';
             }
         }
-        
-        // Show edit form
-        function showEditForm(ticket) {
-            const editFormHTML = `
-                <div class="edit-form-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-                    <div class="edit-form" style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="color: #333; margin: 0;">Edit Ticket ${ticket.ticketCode}</h3>
-                            <button onclick="closeEditForm()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
-                        </div>
-                        
-                        <form id="editTicketForm" onsubmit="saveEditedTicket(event)">
-                            <input type="hidden" id="editTicketCode" value="${ticket.ticketCode}">
-                            
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; color: #333; font-weight: 500;">Mobile/User ID:</label>
-                                <input type="text" id="editMobileOrUserId" value="${ticket.mobileOrUserId || ''}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; color: #333; font-weight: 500;">Issue Type:</label>
-                                <select id="editIssueType" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                                    <option value="">Select Issue Type</option>
-                                    <option value="Call amount not added" ${ticket.issueType === 'Call amount not added' ? 'selected' : ''}>Call amount not added</option>
-                                    <option value="Bank details issue" ${ticket.issueType === 'Bank details issue' ? 'selected' : ''}>Bank details issue</option>
-                                    <option value="Blocking user" ${ticket.issueType === 'Blocking user' ? 'selected' : ''}>Blocking user</option>
-                                    <option value="Payment issue" ${ticket.issueType === 'Payment issue' ? 'selected' : ''}>Payment issue</option>
-                                    <option value="Login problem" ${ticket.issueType === 'Login problem' ? 'selected' : ''}>Login problem</option>
-                                    <option value="App crash" ${ticket.issueType === 'App crash' ? 'selected' : ''}>App crash</option>
-                                    <option value="Other" ${ticket.issueType === 'Other' ? 'selected' : ''}>Other</option>
-                                </select>
-                            </div>
-                            
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; color: #333; font-weight: 500;">Description:</label>
-                                <textarea id="editIssueDescription" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical;">${ticket.issueDescription || ''}</textarea>
-                            </div>
-                            
 
-                            
-                            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                                <button type="submit" style="flex: 1; background: #10b981; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                                    <i class="fas fa-save"></i> Save Changes
-                                </button>
-                                <button type="button" onclick="closeEditForm()" style="flex: 1; background: #6b7280; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+        // Show error message
+        function showError(message) {
+            const ticketsList = document.getElementById('ticketsList');
+            const noTicketsMessage = document.getElementById('noTicketsMessage');
+            
+            ticketsList.style.display = 'none';
+            noTicketsMessage.style.display = 'block';
+            noTicketsMessage.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                    <i class="fas fa-exclamation-triangle fa-3x" style="margin-bottom: 20px;"></i>
+                    <p><strong>Error:</strong> ${message}</p>
+                    <button onclick="loadTickets()" class="action-btn" style="margin-top: 20px;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
                 </div>
             `;
-            
-            document.body.insertAdjacentHTML('beforeend', editFormHTML);
         }
-        
-        // Close edit form
-        function closeEditForm() {
-            const overlay = document.querySelector('.edit-form-overlay');
-            if (overlay) {
-                overlay.remove();
-            }
-        }
-        
-        // Save edited ticket
-        async function saveEditedTicket(event) {
-            event.preventDefault();
-            
-            const ticketCode = document.getElementById('editTicketCode').value;
-            const mobileOrUserId = document.getElementById('editMobileOrUserId').value;
-            const issueType = document.getElementById('editIssueType').value;
-            const issueDescription = document.getElementById('editIssueDescription').value;
-            
-            if (!mobileOrUserId || !issueType || !issueDescription) {
-                alert('Please fill in all required fields!');
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('ticketCode', ticketCode);
-                formData.append('mobileOrUserId', mobileOrUserId);
-                formData.append('issueType', issueType);
-                formData.append('issueDescription', issueDescription);
-                
-                const response = await fetchWithBase('api/tickets-update.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success) {
-                        alert('Ticket updated successfully!');
-                        closeEditForm();
-                        loadMyTickets(); // Refresh the tickets list
-                    } else {
-                        alert('Failed to update ticket: ' + (result.message || 'Unknown error'));
-                    }
-                } else {
-                    alert('Failed to update ticket!');
-                }
-            } catch (error) {
-                console.error('Error updating ticket:', error);
-                alert('Error updating ticket!');
-            }
-        }
-        
-        // Delete ticket function
-        async function deleteTicket(ticketCode) {
-    
-            
-            if (confirm(`Are you sure you want to delete ticket ${ticketCode}? This action cannot be undone.`)) {
-                try {
-                    const formData = new FormData();
-                    formData.append('ticketCode', ticketCode);
-                    
-                    const response = await fetchWithBase('api/tickets-delete.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.success) {
-                            alert('Ticket deleted successfully!');
-                            loadMyTickets(); // Refresh the tickets list
-                        } else {
-                            alert('Failed to delete ticket: ' + (result.message || 'Unknown error'));
-                        }
-                    } else {
-                        alert('Failed to delete ticket!');
-                    }
-                } catch (error) {
-                    console.error('Error deleting ticket:', error);
-                    alert('Error deleting ticket!');
-                }
-            }
-        }
-        
 
-
-
-        
+        // Logout function
         function logout() {
             sessionStorage.removeItem('staffLoggedIn');
+            sessionStorage.removeItem('managerLoggedIn');
+            sessionStorage.removeItem('staffEmail');
+            sessionStorage.removeItem('managerEmail');
             window.location.href = 'index.html';
         }
 
