@@ -268,6 +268,46 @@
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
+        /* File input styling */
+        .file-input {
+            background: #374151;
+            border: 2px dashed #4b5563;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input:hover {
+            border-color: #8b5cf6;
+            background: #4b5563;
+        }
+
+        .file-input::-webkit-file-upload-button {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .current-screenshot {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .current-screenshot p {
+            margin: 0 0 10px 0;
+            color: #8b5cf6;
+            font-weight: 600;
+        }
+
         .form-actions {
             display: flex;
             gap: 12px;
@@ -701,10 +741,17 @@
             document.getElementById('editTicketId').value = ticket.id;
             document.getElementById('editIssueType').value = ticket.issueType || '';
             document.getElementById('editDescription').value = ticket.description || ticket.issueDescription || '';
-            document.getElementById('editStatus').value = ticket.status || 'new';
-            document.getElementById('editPriority').value = ticket.priority || 'Medium';
-            document.getElementById('editAssignedTo').value = ticket.assignedTo || '';
-            document.getElementById('editAssignedToName').value = ticket.assignedToName || '';
+            document.getElementById('editPhoneNumber').value = ticket.mobileOrUserId || ticket.phoneNumber || '';
+            
+            // Handle screenshot preview
+            const currentScreenshot = document.getElementById('currentScreenshot');
+            const screenshotPreview = document.getElementById('screenshotPreview');
+            if (ticket.screenshot) {
+                screenshotPreview.src = ticket.screenshot;
+                currentScreenshot.style.display = 'block';
+            } else {
+                currentScreenshot.style.display = 'none';
+            }
             
             // Show the edit modal
             const modal = document.getElementById('editTicketModal');
@@ -729,10 +776,9 @@
                 document.getElementById('editTicketId').value = '';
                 document.getElementById('editIssueType').value = '';
                 document.getElementById('editDescription').value = '';
-                document.getElementById('editStatus').value = 'new';
-                document.getElementById('editPriority').value = 'Medium';
-                document.getElementById('editAssignedTo').value = '';
-                document.getElementById('editAssignedToName').value = '';
+                document.getElementById('editPhoneNumber').value = '';
+                document.getElementById('editScreenshot').value = '';
+                document.getElementById('currentScreenshot').style.display = 'none';
             }
         }
 
@@ -741,10 +787,8 @@
             const ticketId = document.getElementById('editTicketId').value;
             const issueType = document.getElementById('editIssueType').value.trim();
             const description = document.getElementById('editDescription').value.trim();
-            const status = document.getElementById('editStatus').value;
-            const priority = document.getElementById('editPriority').value;
-            const assignedTo = document.getElementById('editAssignedTo').value.trim();
-            const assignedToName = document.getElementById('editAssignedToName').value.trim();
+            const phoneNumber = document.getElementById('editPhoneNumber').value.trim();
+            const screenshotFile = document.getElementById('editScreenshot').files[0];
             
             if (!issueType) {
                 alert('Issue Type is required');
@@ -757,19 +801,20 @@
             }
             
             try {
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('ticketId', ticketId);
+                formData.append('issueType', issueType);
+                formData.append('description', description);
+                formData.append('phoneNumber', phoneNumber);
+                if (screenshotFile) {
+                    formData.append('screenshot', screenshotFile);
+                }
+                
                 // Update ticket via API
                 const response = await fetch('api/tickets-update.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ticketId: ticketId,
-                        issueType: issueType,
-                        description: description,
-                        status: status,
-                        priority: priority,
-                        assignedTo: assignedTo,
-                        assignedToName: assignedToName
-                    })
+                    body: formData
                 });
                 
                 if (response.ok) {
@@ -994,7 +1039,15 @@
                 
                 <div class="form-group">
                     <label for="editIssueType">Issue Type:</label>
-                    <input type="text" id="editIssueType" name="issueType" required placeholder="Enter issue type">
+                    <select id="editIssueType" name="issueType" required>
+                        <option value="">Select Issue Type</option>
+                        <option value="Call amount not added">Call amount not added</option>
+                        <option value="Coins not added">Coins not added</option>
+                        <option value="App issue / crash">App issue / crash</option>
+                        <option value="Login problem">Login problem</option>
+                        <option value="Payment issue">Payment issue</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -1003,33 +1056,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="editStatus">Status:</label>
-                    <select id="editStatus" name="status" required>
-                        <option value="new">🆕 New</option>
-                        <option value="in-progress">⏳ In Progress</option>
-                        <option value="resolved">✅ Resolved</option>
-                        <option value="closed">🔒 Closed</option>
-                    </select>
+                    <label for="editPhoneNumber">Phone Number:</label>
+                    <input type="tel" id="editPhoneNumber" name="phoneNumber" placeholder="Enter phone number" pattern="[0-9]{10}" maxlength="10">
                 </div>
 
                 <div class="form-group">
-                    <label for="editPriority">Priority:</label>
-                    <select id="editPriority" name="priority" required>
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                        <option value="Urgent">Urgent</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="editAssignedTo">Assigned To (Staff ID):</label>
-                    <input type="text" id="editAssignedTo" name="assignedTo" placeholder="Enter staff ID">
-                </div>
-
-                <div class="form-group">
-                    <label for="editAssignedToName">Assigned To (Name):</label>
-                    <input type="text" id="editAssignedToName" name="assignedToName" placeholder="Enter staff name">
+                    <label for="editScreenshot">Screenshot:</label>
+                    <input type="file" id="editScreenshot" name="screenshot" accept="image/*" class="file-input">
+                    <div id="currentScreenshot" class="current-screenshot" style="display: none;">
+                        <p>Current Screenshot:</p>
+                        <img id="screenshotPreview" src="" alt="Current screenshot" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
+                    </div>
                 </div>
 
                 <div class="form-actions">
