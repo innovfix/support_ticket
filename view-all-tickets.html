@@ -827,11 +827,13 @@
                         alert('Failed to update ticket: ' + (result.error || 'Unknown error'));
                     }
                 } else {
-                    throw new Error(`HTTP ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
             } catch (error) {
                 console.error('Error updating ticket:', error);
-                alert('Failed to update ticket. Please try again.');
+                alert('Failed to update ticket: ' + error.message);
             }
         }
 

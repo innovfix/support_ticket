@@ -13,6 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
+    // Debug logging
+    error_log("=== TICKET UPDATE REQUEST ===");
+    error_log("POST data: " . print_r($_POST, true));
+    error_log("FILES data: " . print_r($_FILES, true));
+    
     // Get PDO connection
     $pdo = get_pdo();
     
@@ -21,6 +26,8 @@ try {
     $issueType = $_POST['issueType'] ?? null;
     $description = $_POST['description'] ?? null;
     $phoneNumber = $_POST['phoneNumber'] ?? null;
+    
+    error_log("Parsed data - ticketId: $ticketId, issueType: $issueType, description: $description, phoneNumber: $phoneNumber");
     
     // Validate required fields
     if (!$ticketId || !$issueType || !$description) {
@@ -37,7 +44,7 @@ try {
     }
     
     // Handle screenshot upload
-    $screenshotPath = $existingTicket['screenshot']; // Keep existing screenshot by default
+    $screenshotPath = $existingTicket['screenshot_path']; // Keep existing screenshot by default
     
     if (isset($_FILES['screenshot']) && $_FILES['screenshot']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '../uploads/';
@@ -75,10 +82,10 @@ try {
             $screenshotPath = 'uploads/' . $uniqueFileName;
             
             // Delete old screenshot if it exists and is different
-            if ($existingTicket['screenshot'] && 
-                $existingTicket['screenshot'] !== $screenshotPath && 
-                file_exists('../' . $existingTicket['screenshot'])) {
-                unlink('../' . $existingTicket['screenshot']);
+            if ($existingTicket['screenshot_path'] && 
+                $existingTicket['screenshot_path'] !== $screenshotPath && 
+                file_exists('../' . $existingTicket['screenshot_path'])) {
+                unlink('../' . $existingTicket['screenshot_path']);
             }
         } else {
             json_response(['error' => 'Failed to upload screenshot'], 500);
@@ -86,15 +93,20 @@ try {
     }
     
     // Update ticket in database
-    $stmt = $pdo->prepare("
+    $updateQuery = "
         UPDATE tickets 
-        SET issueType = ?, 
-            issueDescription = ?, 
-            mobileOrUserId = ?,
-            screenshot = ?,
+        SET issue_type = ?, 
+            issue_description = ?, 
+            mobile_or_user_id = ?,
+            screenshot_path = ?,
             updated_at = NOW()
         WHERE id = ?
-    ");
+    ";
+    
+    error_log("Update query: $updateQuery");
+    error_log("Update parameters: " . print_r([$issueType, $description, $phoneNumber, $screenshotPath, $ticketId], true));
+    
+    $stmt = $pdo->prepare($updateQuery);
     
     $result = $stmt->execute([
         $issueType,
@@ -103,6 +115,11 @@ try {
         $screenshotPath,
         $ticketId
     ]);
+    
+    error_log("Database update result: " . ($result ? 'success' : 'failed'));
+    if (!$result) {
+        error_log("Database error info: " . print_r($stmt->errorInfo(), true));
+    }
     
     if ($result) {
         // Get updated ticket data
