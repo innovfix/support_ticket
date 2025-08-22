@@ -1792,15 +1792,26 @@ function restoreFilterSelection() {
 function changeTicketStatus(ticketId) {
     console.log('=== CHANGE TICKET STATUS FUNCTION CALLED ===');
     console.log('Ticket ID:', ticketId);
+    console.log('Type of ticketId:', typeof ticketId);
     
     currentTicketId = ticketId;
+    console.log('Set currentTicketId to:', currentTicketId);
     
     // Get current ticket to show current status
     const storedTickets = localStorage.getItem('tickets');
+    console.log('Stored tickets from localStorage:', storedTickets ? 'Found' : 'Not found');
     const tickets = storedTickets ? JSON.parse(storedTickets) : [];
+    console.log('Parsed tickets array length:', tickets.length);
+    
     // Try to find ticket by ID first, then by ticketCode
     const ticket = tickets.find(t => t.id === ticketId || t.ticketCode === ticketId);
     console.log('Found ticket:', ticket);
+    console.log('Ticket details:', ticket ? {
+        id: ticket.id,
+        ticketCode: ticket.ticketCode,
+        status: ticket.status,
+        issueType: ticket.issueType
+    } : 'No ticket found');
     
     if (ticket) {
         // Check if ticket is closed
@@ -1825,18 +1836,30 @@ function changeTicketStatus(ticketId) {
         const form = document.getElementById('changeStatusForm');
         if (warning) warning.style.display = 'none';
         if (form) form.style.display = 'block';
-        
-
     }
     
     // Show the modal
     const modal = document.getElementById('changeStatusModal');
     console.log('Status modal found:', !!modal);
+    console.log('Modal element:', modal);
+    
     if (modal) {
         modal.style.display = 'block';
         console.log('Status modal display set to block');
+        
+        // Check if form elements exist
+        const statusSelect = document.getElementById('newStatus');
+        const statusDescription = document.getElementById('statusDescription');
+        const form = document.getElementById('changeStatusForm');
+        
+        console.log('Form elements found:', {
+            statusSelect: !!statusSelect,
+            statusDescription: !!statusDescription,
+            form: !!form
+        });
     } else {
         console.error('Change status modal not found');
+        console.error('Available elements with "changeStatusModal" ID:', document.querySelectorAll('[id*="changeStatusModal"]'));
         alert('Change status modal not found!');
     }
 }
