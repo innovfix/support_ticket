@@ -588,7 +588,7 @@
             <span class="app-name">Query Desk</span>
         </div>
         <div class="header-right">
-            <a href="staff-dashboard.html" class="action-btn" id="backButton">← Back to Dashboard</a>
+            <a href="staff-dashboard.html" class="action-btn" id="backButton">Dashboard</a>
             <button onclick="logout()" class="action-btn logout-btn">Logout</button>
         </div>
     </div>
@@ -690,7 +690,7 @@
                 currentUserEmail = sessionStorage.getItem('staffEmail');
                 document.getElementById('headerDescription').textContent = 'Track and manage all your assigned support tickets';
                 document.getElementById('backButton').href = 'staff-dashboard.html';
-                document.getElementById('backButton').textContent = '← Back to Staff Dashboard';
+                document.getElementById('backButton').textContent = 'Dashboard';
             } else if (sessionStorage.getItem('managerLoggedIn')) {
                 currentUserRole = 'manager';
                 currentUserEmail = sessionStorage.getItem('managerEmail');
