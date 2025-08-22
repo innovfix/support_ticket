@@ -1,0 +1,3 @@
+[33md0b97a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Remove automatic refresh functionality from staff view all tickets page
+[33mcc63d00[m Change 'BACK TO STAFF DASHBOARD' button text to 'Dashboard' for cleaner UI
+[33mecb2c85[m Reduce header button size by 50% for better UI proportions
