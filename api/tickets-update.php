@@ -1,77 +1,129 @@
 <?php
 require_once '_bootstrap.php';
 
-// Handle CLI execution
-
-
-// Handle CORS
+// Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type');
-    exit(0);
-}
-
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    json_response(['success' => false, 'message' => 'Only POST method allowed'], 405);
+    http_response_code(200);
     exit;
 }
 
+// Only allow POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    json_response(['error' => 'Method not allowed'], 405);
+}
+
 try {
-    // Get database connection
+    // Get PDO connection
     $pdo = get_pdo();
     
     // Get form data
-    $ticketCode = $_POST['ticketCode'] ?? '';
-    $mobileOrUserId = $_POST['mobileOrUserId'] ?? '';
-    $issueType = $_POST['issueType'] ?? '';
-    $issueDescription = $_POST['issueDescription'] ?? '';
-    
-    // Debug logging
-    error_log("Update request - ticketCode: $ticketCode, mobileOrUserId: $mobileOrUserId, issueType: $issueType");
+    $ticketId = $_POST['ticketId'] ?? null;
+    $issueType = $_POST['issueType'] ?? null;
+    $description = $_POST['description'] ?? null;
+    $phoneNumber = $_POST['phoneNumber'] ?? null;
     
     // Validate required fields
-    if (empty($ticketCode) || empty($mobileOrUserId) || empty($issueType) || empty($issueDescription)) {
-        json_response(['success' => false, 'message' => 'All fields are required'], 400);
-        exit;
+    if (!$ticketId || !$issueType || !$description) {
+        json_response(['error' => 'Missing required fields: ticketId, issueType, description'], 400);
+    }
+    
+    // Check if ticket exists
+    $stmt = $pdo->prepare("SELECT * FROM tickets WHERE id = ?");
+    $stmt->execute([$ticketId]);
+    $existingTicket = $stmt->fetch();
+    
+    if (!$existingTicket) {
+        json_response(['error' => 'Ticket not found'], 404);
+    }
+    
+    // Handle screenshot upload
+    $screenshotPath = $existingTicket['screenshot']; // Keep existing screenshot by default
+    
+    if (isset($_FILES['screenshot']) && $_FILES['screenshot']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = '../uploads/';
+        
+        // Create uploads directory if it doesn't exist
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        $file = $_FILES['screenshot'];
+        $fileName = $file['name'];
+        $fileTmpName = $file['tmp_name'];
+        $fileSize = $file['size'];
+        $fileError = $file['error'];
+        $fileType = $file['type'];
+        
+        // Validate file type
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!in_array($fileType, $allowedTypes)) {
+            json_response(['error' => 'Invalid file type. Only JPEG, PNG, and GIF are allowed.'], 400);
+        }
+        
+        // Validate file size (max 5MB)
+        if ($fileSize > 5 * 1024 * 1024) {
+            json_response(['error' => 'File size too large. Maximum size is 5MB.'], 400);
+        }
+        
+        // Generate unique filename
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $uniqueFileName = 'screenshot_' . time() . '_' . uniqid() . '.' . $fileExtension;
+        $uploadPath = $uploadDir . $uniqueFileName;
+        
+        // Move uploaded file
+        if (move_uploaded_file($fileTmpName, $uploadPath)) {
+            $screenshotPath = 'uploads/' . $uniqueFileName;
+            
+            // Delete old screenshot if it exists and is different
+            if ($existingTicket['screenshot'] && 
+                $existingTicket['screenshot'] !== $screenshotPath && 
+                file_exists('../' . $existingTicket['screenshot'])) {
+                unlink('../' . $existingTicket['screenshot']);
+            }
+        } else {
+            json_response(['error' => 'Failed to upload screenshot'], 500);
+        }
     }
     
     // Update ticket in database
     $stmt = $pdo->prepare("
         UPDATE tickets 
-        SET mobile_or_user_id = ?, issue_type = ?, issue_description = ?
-        WHERE ticket_code = ?
+        SET issueType = ?, 
+            issueDescription = ?, 
+            mobileOrUserId = ?,
+            screenshot = ?,
+            updated_at = NOW()
+        WHERE id = ?
     ");
     
     $result = $stmt->execute([
-        $mobileOrUserId,
         $issueType,
-        $issueDescription,
-        $ticketCode
+        $description,
+        $phoneNumber,
+        $screenshotPath,
+        $ticketId
     ]);
     
     if ($result) {
-        if ($stmt->rowCount() > 0) {
-            json_response([
-                'success' => true, 
-                'message' => 'Ticket updated successfully',
-                'ticketCode' => $ticketCode
-            ]);
-        } else {
-            json_response(['success' => false, 'message' => 'Ticket not found or no changes made'], 404);
-        }
+        // Get updated ticket data
+        $stmt = $pdo->prepare("SELECT * FROM tickets WHERE id = ?");
+        $stmt->execute([$ticketId]);
+        $updatedTicket = $stmt->fetch();
+        
+        json_response([
+            'success' => true,
+            'message' => 'Ticket updated successfully',
+            'ticket' => $updatedTicket
+        ]);
     } else {
-        json_response(['success' => false, 'message' => 'Database update failed'], 500);
+        json_response(['error' => 'Failed to update ticket'], 500);
     }
     
 } catch (PDOException $e) {
     error_log("Database error in tickets-update.php: " . $e->getMessage());
-    json_response(['success' => false, 'message' => 'Database error occurred'], 500);
+    json_response(['error' => 'Database error occurred'], 500);
 } catch (Exception $e) {
     error_log("General error in tickets-update.php: " . $e->getMessage());
-    json_response(['success' => false, 'message' => 'An error occurred'], 500);
+    json_response(['error' => 'An error occurred while updating the ticket'], 500);
 }
 ?>
