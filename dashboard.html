@@ -219,6 +219,13 @@
             try {
                 // Update via API
                 const ticketCode = currentTicketIdForStatus;
+                console.log('Sending status update request:', { 
+                    ticketCode, 
+                    status: newStatus, 
+                    description: statusDescription, 
+                    changedBy: 'Manager' 
+                });
+                
                 const response = await fetch('api/tickets-update-status.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -230,9 +237,14 @@
                     })
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
                 if (response.ok) {
                     const result = await response.json();
-                    if (result.success) {
+                    console.log('API response:', result);
+                    
+                    if (result.ok) {
                         alert('Ticket status updated successfully!');
                         closeStatusModal();
                         // Refresh the tickets list and dashboard counts
@@ -246,11 +258,13 @@
                         alert('Failed to update status: ' + (result.error || 'Unknown error'));
                     }
                 } else {
-                    throw new Error(`HTTP ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('HTTP Error Response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
             } catch (error) {
                 console.error('Error updating ticket status:', error);
-                alert('Failed to update ticket status. Please try again.');
+                alert('Failed to update ticket status: ' + error.message);
             }
         }
 
