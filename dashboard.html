@@ -166,6 +166,104 @@
                 ticketsSection.scrollIntoView({ behavior: 'smooth' });
             }
         }
+
+        // Global variable to track current ticket for status changes
+        let currentTicketIdForStatus = null;
+
+        // Function to change ticket status (called from manager dashboard)
+        function changeTicketStatus(ticketId) {
+            console.log('=== CHANGE TICKET STATUS FUNCTION CALLED FROM DASHBOARD ===');
+            console.log('Ticket ID:', ticketId);
+            
+            currentTicketIdForStatus = ticketId;
+            
+            // Show the modal
+            const modal = document.getElementById('changeStatusModal');
+            if (modal) {
+                modal.style.display = 'block';
+                console.log('Status modal opened successfully');
+            } else {
+                console.error('Status change modal not found!');
+                alert('Status change modal not found!');
+            }
+        }
+
+        // Function to close status modal
+        function closeStatusModal() {
+            const modal = document.getElementById('changeStatusModal');
+            if (modal) {
+                // Clear the form fields
+                document.getElementById('newStatus').value = '';
+                document.getElementById('statusDescription').value = '';
+                
+                modal.style.display = 'none';
+                currentTicketIdForStatus = null;
+            }
+        }
+
+        // Function to update ticket status
+        async function updateTicketStatus() {
+            const newStatus = document.getElementById('newStatus').value;
+            const statusDescription = document.getElementById('statusDescription').value.trim();
+            
+            if (!newStatus) {
+                alert('Please select a status');
+                return;
+            }
+            
+            if (!currentTicketIdForStatus) {
+                alert('No ticket selected');
+                return;
+            }
+            
+            try {
+                // Update via API
+                const ticketCode = currentTicketIdForStatus;
+                const response = await fetch('api/tickets-update-status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        ticketCode, 
+                        status: newStatus, 
+                        description: statusDescription, 
+                        changedBy: 'Manager' 
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Ticket status updated successfully!');
+                        closeStatusModal();
+                        // Refresh the tickets list and dashboard counts
+                        if (typeof displayManagerTickets === 'function') {
+                            displayManagerTickets();
+                        }
+                        if (typeof updateManagerDashboardCounts === 'function') {
+                            updateManagerDashboardCounts();
+                        }
+                    } else {
+                        alert('Failed to update status: ' + (result.error || 'Unknown error'));
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error updating ticket status:', error);
+                alert('Failed to update ticket status. Please try again.');
+            }
+        }
+
+        // Add form submit event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('changeStatusForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    updateTicketStatus();
+                });
+            }
+        });
     </script>
 </body>
 </html>
