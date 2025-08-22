@@ -63,6 +63,7 @@
 				
 				console.log('Registration API Base URL:', base);
 				
+				console.log('Making request to:', base + 'staff-register.php');
 				const res = await fetch(base + 'staff-register.php', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -70,6 +71,18 @@
 				});
 				
 				console.log('Registration response status:', res.status);
+				console.log('Registration response headers:', res.headers);
+				
+				// Check if response is JSON
+				const contentType = res.headers.get('content-type');
+				console.log('Content-Type:', contentType);
+				
+				if (!contentType || !contentType.includes('application/json')) {
+					// If not JSON, get the text to see what we're actually getting
+					const responseText = await res.text();
+					console.error('Non-JSON response received:', responseText);
+					throw new Error('Server returned non-JSON response. Check console for details.');
+				}
 				
 				const data = await res.json();
 				console.log('Registration response data:', data);
