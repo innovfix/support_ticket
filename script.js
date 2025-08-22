@@ -53,14 +53,27 @@ async function fetchTicketsFromApi(status = null) {
 }
 
 async function updateTicketStatusViaApi(ticketCode, newStatus, description = '', changedBy = 'Manager') {
+    // Only include assignment fields if they exist (for create-ticket page)
     const assignedSelect = document.getElementById('assignToStaff');
     const assignedNameInput = document.getElementById('assignToStaffName');
     const assignedTo = assignedSelect ? assignedSelect.value : '';
     const assignedToName = assignedNameInput ? assignedNameInput.value : '';
+    
+    const requestBody = { 
+        ticketCode, 
+        status: newStatus, 
+        description, 
+        changedBy 
+    };
+    
+    // Only add assignment fields if they have values
+    if (assignedTo) requestBody.assignedTo = assignedTo;
+    if (assignedToName) requestBody.assignedToName = assignedToName;
+    
     const res = await apiFetchJson('api/tickets-update-status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticketCode, status: newStatus, description, changedBy, assignedTo, assignedToName })
+        body: JSON.stringify(requestBody)
     });
     if (!res.ok) throw new Error('Update failed');
     return true;
@@ -1785,7 +1798,8 @@ function changeTicketStatus(ticketId) {
     // Get current ticket to show current status
     const storedTickets = localStorage.getItem('tickets');
     const tickets = storedTickets ? JSON.parse(storedTickets) : [];
-    const ticket = tickets.find(t => t.id === ticketId);
+    // Try to find ticket by ID first, then by ticketCode
+    const ticket = tickets.find(t => t.id === ticketId || t.ticketCode === ticketId);
     console.log('Found ticket:', ticket);
     
     if (ticket) {
@@ -1874,7 +1888,10 @@ function updateTicketStatus() {
         // Fallback to local update
         const storedTickets = localStorage.getItem('tickets');
         let ticketsLocal = storedTickets ? JSON.parse(storedTickets) : [];
-        const ticketIndex = ticketsLocal.findIndex(t => t.id === currentTicketId);
+        // Try to find ticket by ID first, then by ticketCode
+        const ticketIndex = ticketsLocal.findIndex(t => 
+            t.id === currentTicketId || t.ticketCode === currentTicketId
+        );
         if (ticketIndex === -1) {
             showErrorMessage('Ticket not found');
             return;
