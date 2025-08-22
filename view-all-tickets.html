@@ -661,7 +661,7 @@
             if (sessionStorage.getItem('staffLoggedIn')) {
                 currentUserRole = 'staff';
                 currentUserEmail = sessionStorage.getItem('staffEmail');
-                document.getElementById('headerDescription').textContent = 'Track and manage all your assigned support tickets';
+                document.getElementById('headerDescription').textContent = 'Track and manage your own created support tickets';
                 document.getElementById('backButton').href = 'staff-dashboard.html';
                 document.getElementById('backButton').textContent = 'Dashboard';
             } else if (sessionStorage.getItem('managerLoggedIn')) {
@@ -732,7 +732,25 @@
                 console.log('Tickets data:', data);
                 
                 if (data.ok && data.tickets) {
-                    allTickets = data.tickets;
+                    // Filter tickets based on user role
+                    if (currentUserRole === 'staff') {
+                        // Staff can only see their own tickets
+                        allTickets = data.tickets.filter(ticket => 
+                            ticket.createdBy === currentUserEmail || 
+                            ticket.createdByEmail === currentUserEmail ||
+                            ticket.email === currentUserEmail
+                        );
+                        console.log('Filtered tickets for staff:', allTickets.length);
+                        console.log('Staff email:', currentUserEmail);
+                        console.log('Sample ticket creator:', data.tickets[0]?.createdBy);
+                    } else if (currentUserRole === 'manager') {
+                        // Managers can see all tickets
+                        allTickets = data.tickets;
+                        console.log('All tickets for manager:', allTickets.length);
+                    } else {
+                        allTickets = [];
+                    }
+                    
                     console.log('=== TICKETS LOADED SUCCESSFULLY ===');
                     console.log('Total tickets loaded:', allTickets.length);
                     console.log('All tickets data:', allTickets);
@@ -989,9 +1007,18 @@
                 console.log('Creating HTML for ticket:', ticket);
                 console.log('Available fields:', Object.keys(ticket));
                 
-                // Format dates
-                const createdDate = new Date(ticket.createdAt).toLocaleDateString();
-                const createdTime = new Date(ticket.createdAt).toLocaleTimeString();
+                // Format dates with correct time
+                const createdDate = new Date(ticket.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                const createdTime = new Date(ticket.createdAt).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                });
                 
                 // Get status color
                 const statusColors = {
@@ -1111,7 +1138,16 @@
                             <strong>User ID:</strong> ${ticket.mobileOrUserId || 'N/A'}
                         </div>
                         <div class="detail-row">
-                            <strong>Created:</strong> ${new Date(ticket.createdAt).toLocaleString()}
+                            <strong>Created:</strong> ${new Date(ticket.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit'
+                            })} ${new Date(ticket.createdAt).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: true
+                            })}
                         </div>
                         ${ticket.assignedToName ? `
                         <div class="detail-row">
