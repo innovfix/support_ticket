@@ -135,13 +135,10 @@
         // Load issue types into dropdown
         async function loadIssueTypesIntoStaff() {
             try {
-                console.log('Loading issue types...');
                 const response = await fetch('api/issue-types-list.php');
-                console.log('Response status:', response.status);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Issue types data:', data);
                     
                     if (data.types && data.types.length > 0) {
                         const issueTypeSelect = document.getElementById('issueType');
@@ -153,19 +150,15 @@
                                 option.textContent = type.name;
                                 issueTypeSelect.appendChild(option);
                             });
-                            console.log('Loaded', data.types.length, 'issue types');
                         }
                     } else {
-                        console.log('No issue types from API, using fallback');
                         loadFallbackIssueTypes();
                     }
                 } else {
-                    console.log('API response not OK, using fallback');
                     loadFallbackIssueTypes();
                 }
             } catch (error) {
                 console.error('Error loading issue types:', error);
-                console.log('Using fallback issue types');
                 loadFallbackIssueTypes();
             }
         }
@@ -191,7 +184,7 @@
                     option.textContent = type;
                     issueTypeSelect.appendChild(option);
                 });
-                console.log('Loaded', fallbackTypes.length, 'fallback issue types');
+
             }
         }
 

@@ -3,12 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 
 // Handle CLI execution
-if (php_sapi_name() === 'cli') {
-    echo "Issue Types Add API\n";
-    echo "This API requires POST data with 'name' field\n";
-    echo "Usage: curl -X POST -H 'Content-Type: application/json' -d '{\"name\":\"Test Issue Type\"}' http://localhost/query-desk/api/issue-types-add.php\n";
-    exit(0);
-}
+
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);

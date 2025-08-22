@@ -1,3 +1,0 @@
-[33m0df33b4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Complete system overhaul: Fixed API routing, database connections, and all page functionality - All staff and manager pages now working correctly with proper API base URLs and database connectivity
-[33m5399b61[m content: change welcome text to 'Query Solve System'
-[33m642a090[m chore(security): add config.example.php and ignore config.php

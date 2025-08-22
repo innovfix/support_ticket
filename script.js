@@ -68,18 +68,14 @@ async function updateTicketStatusViaApi(ticketCode, newStatus, description = '',
 
 // --- Issue Types API helpers ---
 async function fetchIssueTypes() {
-    console.log('=== fetchIssueTypes called ===');
     try {
-        console.log('Calling apiFetchJson with: api/issue-types-list.php');
         const res = await apiFetchJson('api/issue-types-list.php');
-        console.log('apiFetchJson result:', res);
         
         if (!res.ok) {
             console.error('API response not ok:', res);
             throw new Error('Issue types load failed');
         }
         
-        console.log('Returning types:', res.types);
         return res.types || [];
     } catch (error) {
         console.error('Error in fetchIssueTypes:', error);
@@ -209,7 +205,7 @@ function clearStaleOnlineStatuses() {
     if (!currentStaffId) {
         onlineStaff.clear();
         localStorage.removeItem('onlineStaff');
-        console.log('No active staff, cleared all online statuses');
+
         return;
     }
     
@@ -219,7 +215,7 @@ function clearStaleOnlineStatuses() {
         // If this staff is not the current logged-in user, remove them
         if (staffId !== currentStaffId) {
             onlineStaff.delete(staffId);
-            console.log('Removed stale online status for:', staffId);
+    
         }
     });
     
@@ -238,10 +234,8 @@ function openCreateTicket() {
 
 // Staff Dashboard Create Ticket Form
 function openCreateTicketForm() {
-    console.log('Opening create ticket form...');
-    const modal = document.getElementById('createTicketModal');
+    const modal = document.getElementById('createTicketForm');
     if (modal) {
-        console.log('Modal found, displaying...');
         modal.style.display = 'block';
         // Ensure issue types are loaded when opening the form
         if (typeof loadIssueTypesIntoStaff === 'function') {
@@ -264,22 +258,18 @@ function openCreateTicketForm() {
 }
 
 function closeCreateTicketForm() {
-    console.log('Closing create ticket form...');
-    const modal = document.getElementById('createTicketModal');
+    const modal = document.getElementById('createTicketForm');
     if (modal) {
-        console.log('Modal found, hiding...');
         modal.style.display = 'none';
         // Reset form
         const form = document.getElementById('createTicketForm');
         if (form) {
             form.reset();
-            console.log('Form reset');
         }
         // Clear screenshot name display
         const screenshotName = document.getElementById('screenshotName');
         if (screenshotName) {
             screenshotName.style.display = 'none';
-            console.log('Screenshot name cleared');
         }
     } else {
         console.error('Modal not found when trying to close!');
@@ -288,7 +278,6 @@ function closeCreateTicketForm() {
 
 function submitTicket(event) {
     event.preventDefault();
-    console.log('Submitting ticket...');
     
     const formElem = event.target;
     const formData = new FormData(formElem);
@@ -374,12 +363,10 @@ function addQueryToList(query) {
 // Logout functionality
 function initializeLogoutButtons() {
     const logoutButtons = document.querySelectorAll('.logout-btn');
-    console.log('Found logout buttons:', logoutButtons.length);
+    
     
     logoutButtons.forEach((button, index) => {
-        console.log(`Setting up logout button ${index + 1}:`, button);
         button.addEventListener('click', function() {
-            console.log('Logout button clicked!');
             // Show confirmation message
             showInfoMessage('Logging out...');
             
@@ -390,7 +377,7 @@ function initializeLogoutButtons() {
                 sessionStorage.clear();
                 
                 // Redirect to main page
-                console.log('Executing redirect to index.html from initializeLogoutButtons...');
+        
                 window.location.href = 'index.html';
             }, 1000);
         });
@@ -424,7 +411,7 @@ function refreshDashboard() {
 }
 
 function setupQuickActions() {
-    console.log('Setting up quick actions...');
+    
     const quickActionCards = document.querySelectorAll('.quick-action-card');
     
     quickActionCards.forEach(card => {
@@ -469,12 +456,12 @@ function viewCompletedTickets() {
 
 // Staff Dashboard functionality
 if (window.location.pathname.includes('staff-dashboard.html') || window.location.href.includes('staff-dashboard.html')) {
-    console.log('Initializing Staff Dashboard...');
+    
     // Initialize staff dashboard
     initializeStaffDashboard();
     // Initialize logout buttons
     initializeLogoutButtons();
-    console.log('Staff Dashboard initialized successfully');
+    
     // Load issue types once dashboard is ready
     if (typeof loadIssueTypesIntoStaff === 'function') {
         loadIssueTypesIntoStaff();
@@ -1345,7 +1332,7 @@ window.closeStatusModal = closeStatusModal;
 window.updateTicketStatus = updateTicketStatus;
 window.viewScreenshot = viewScreenshot;
 window.clearAllTickets = clearAllTickets;
-window.debugFilterState = debugFilterState;
+
 
 
 // Initialize tickets display on manager dashboard
@@ -1779,49 +1766,9 @@ function restoreFilterSelection() {
     }
 }
 
-function debugFilterState() {
-    console.log('=== DEBUG FILTER STATE ===');
-    
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        console.log('Filter element found:', statusFilter);
-        console.log('Current filter value:', statusFilter.value);
-        console.log('Available options:', Array.from(statusFilter.options).map(opt => opt.value));
-    } else {
-        console.error('Status filter element not found!');
-    }
-    
-    const storedTickets = localStorage.getItem('tickets');
-    const tickets = storedTickets ? JSON.parse(storedTickets) : [];
-    console.log('Total tickets in localStorage:', tickets.length);
-    
-    if (tickets.length > 0) {
-        const statusCounts = {};
-        tickets.forEach(ticket => {
-            statusCounts[ticket.status] = (statusCounts[ticket.status] || 0) + 1;
-        });
-        console.log('Ticket status distribution:', statusCounts);
-        
-        // Show first few tickets for debugging
-        tickets.slice(0, 3).forEach((ticket, index) => {
-            console.log(`Ticket ${index + 1}:`, {
-                id: ticket.id,
-                status: ticket.status,
-                issueType: ticket.issueType
-            });
-        });
-    }
-    
-    const savedFilter = localStorage.getItem('managerStatusFilter');
-    console.log('Saved filter preference:', savedFilter);
-}
 
-function refreshManagerDashboard() {
-    console.log('Refreshing manager dashboard...');
-    displayManagerTickets();
-    updateManagerDashboardCounts();
-    showSuccessMessage('Dashboard refreshed successfully!');
-}
+
+
 
 
 

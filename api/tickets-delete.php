@@ -1,13 +1,7 @@
 <?php
 require_once '_bootstrap.php';
 
-// Handle CLI execution
-if (php_sapi_name() === 'cli') {
-    echo "Tickets Delete API\n";
-    echo "This API requires POST data with 'ticketCode' field\n";
-    echo "Usage: curl -X POST -F 'ticketCode=TKT-0001' http://localhost/query-desk/api/tickets-delete.php\n";
-    exit(0);
-}
+
 
 // Handle CORS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

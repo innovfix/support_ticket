@@ -52,7 +52,7 @@ try {
         }
     }
     
-    echo "\nTest the API endpoint: http://localhost/ticketing-manager/api/issue-types-list.php\n";
+
     
 } catch (Throwable $e) {
     echo "Error: " . $e->getMessage() . "\n";

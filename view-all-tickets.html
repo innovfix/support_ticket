@@ -119,11 +119,7 @@
                     if (data.ok && data.tickets) {
                         // For now, show all tickets to staff (we'll refine filtering later)
                         let myTickets = data.tickets;
-                        console.log('Total tickets in database:', data.tickets.length);
-                        console.log('Current staff ID:', sessionStorage.getItem('currentStaffId') || localStorage.getItem('currentStaffId'));
-                        
-                        console.log('Loaded tickets:', myTickets);
-                        console.log('Ticket statuses:', myTickets.map(t => t.status));
+
                         displayMyTickets(myTickets);
                     } else {
                         displayMyTickets([]);
@@ -233,14 +229,14 @@
         // Filter tickets by status
         function filterTickets() {
             const statusFilter = document.getElementById('statusFilter').value;
-            console.log('Filtering tickets by status:', statusFilter);
+
             
             if (!statusFilter) {
                 // Show all tickets if no filter is selected
                 document.querySelectorAll('.ticket-card').forEach(ticket => {
                     ticket.style.display = 'block';
                 });
-                console.log('Showing all tickets (no filter)');
+
                 return;
             }
             
@@ -251,7 +247,7 @@
                 if (statusElement) {
                     const ticketStatus = statusElement.textContent.toLowerCase();
                     const filterStatus = statusFilter.toLowerCase();
-                    console.log('Ticket status:', ticketStatus, 'Filter status:', filterStatus, 'Match:', ticketStatus === filterStatus);
+    
                     
                     if (ticketStatus === filterStatus) {
                         ticket.style.display = 'block';
@@ -260,12 +256,12 @@
                         ticket.style.display = 'none';
                     }
                 } else {
-                    console.log('No status element found in ticket:', ticket);
+    
                     ticket.style.display = 'none';
                 }
             });
             
-            console.log('Filtered tickets. Visible count:', visibleCount);
+
         }
 
         // Show full status description in a modal dialog
@@ -354,7 +350,7 @@
         
         // Edit ticket function
         async function editTicket(ticketCode) {
-            console.log('✏️ Editing ticket:', ticketCode);
+    
             
             try {
                 // Get all tickets and find the specific one
@@ -492,7 +488,7 @@
         
         // Delete ticket function
         async function deleteTicket(ticketCode) {
-            console.log('🗑️ Deleting ticket:', ticketCode);
+    
             
             if (confirm(`Are you sure you want to delete ticket ${ticketCode}? This action cannot be undone.`)) {
                 try {
