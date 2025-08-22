@@ -33,11 +33,13 @@ function get_pdo(): PDO {
     if ($pdo instanceof PDO) return $pdo;
 
     try {
-        // Try multiple paths for config.php
+        // Try multiple paths for config files (local first, then production)
         $configPaths = [
+            __DIR__ . '/../config.local.php',     // Local development config first
             __DIR__ . '/../config.php',           // API folder parent
             __DIR__ . '/../../config.php',        // Two levels up
             __DIR__ . '/../../../config.php',     // Three levels up
+            dirname(__DIR__ . '/../config.local.php'), // Alternative local path
             dirname(__DIR__) . '/config.php',     // Alternative approach
             $_SERVER['DOCUMENT_ROOT'] . '/config.php', // Document root
             $_SERVER['DOCUMENT_ROOT'] . '/query-desk/config.php', // Query desk subfolder
