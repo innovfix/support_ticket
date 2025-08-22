@@ -5,15 +5,15 @@
  * For local development, update with your XAMPP database details
  */
 
-// Database Configuration (Hosting)
-define('DB_HOST', 'localhost');          // Usually 'localhost' for shared hosting
-define('DB_NAME', 'u743445510_hima_support'); // Your hosting database name
-define('DB_USER', 'u743445510_hima_support');   // Your hosting database username
-define('DB_PASS', 'HimaSupport@2025');   // Your hosting database password
+// Database Configuration (Local XAMPP for development)
+define('DB_HOST', 'localhost');           // XAMPP MySQL host
+define('DB_NAME', 'query_desk');          // Local database name
+define('DB_USER', 'root');                // XAMPP default user
+define('DB_PASS', '');                    // XAMPP default has no password
 define('DB_PORT', '3306');                // Default MySQL port
 
-// Application Configuration (Hosting)
-define('APP_URL', 'https://ticket.himaapp.in/');  // Your website URL
+// Application Configuration (Local development)
+define('APP_URL', 'http://localhost/hima-support/');  // Local project URL
 define('UPLOAD_PATH', __DIR__ . '/uploads/');             // Upload directory path
 
 // Security Configuration (Local - no HTTPS)
