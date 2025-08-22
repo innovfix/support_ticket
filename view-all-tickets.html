@@ -183,6 +183,16 @@
             border-color: #1e40af;
         }
 
+        .view-status-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: 1px solid #10b981;
+        }
+
+        .view-status-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            border-color: #059669;
+        }
+
         /* Status Change Modal Styles */
         .modal {
             display: none;
@@ -471,6 +481,40 @@
 
         .notification-close:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Ticket Details Styling */
+        .ticket-details {
+            padding: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #4b5563;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row strong {
+            color: #f9fafb;
+            font-weight: 600;
+            min-width: 140px;
+        }
+
+        .detail-row span {
+            color: #d1d5db;
+            text-align: right;
+            flex: 1;
+            margin-left: 20px;
+        }
+
+        .modal-body {
+            padding: 0;
         }
     </style>
 </head>
@@ -761,6 +805,47 @@
             });
         }
 
+        // View ticket status details
+        function viewTicketStatus(ticketId) {
+            console.log('=== VIEW TICKET STATUS FUNCTION CALLED ===');
+            console.log('Ticket ID:', ticketId);
+            
+            // Find the ticket
+            const ticket = allTickets.find(t => t.id == ticketId || t.ticketCode == ticketId);
+            if (!ticket) {
+                alert('Ticket not found');
+                return;
+            }
+            
+            // Populate the status view modal
+            const statusModal = document.getElementById('viewStatusModal');
+            if (statusModal) {
+                // Set ticket info
+                document.getElementById('statusTicketCode').textContent = ticket.ticketCode || ticket.id;
+                document.getElementById('statusIssueType').textContent = ticket.issueType || 'No Issue Type';
+                document.getElementById('statusCurrentStatus').textContent = ticket.status || 'Unknown';
+                document.getElementById('statusCreatedBy').textContent = ticket.createdBy || 'Unknown';
+                document.getElementById('statusCreatedAt').textContent = new Date(ticket.createdAt).toLocaleString();
+                
+                // Set status description
+                const statusDescription = ticket.statusDescription || ticket.status_description || 'No status description available';
+                document.getElementById('statusDescription').textContent = statusDescription;
+                
+                // Show the modal
+                statusModal.style.display = 'block';
+            } else {
+                alert('Status view modal not found!');
+            }
+        }
+
+        // Close status view modal
+        function closeViewStatusModal() {
+            const modal = document.getElementById('viewStatusModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
         // Update last updated time
         function updateLastUpdatedTime() {
             const lastUpdatedElement = document.getElementById('lastUpdated');
@@ -851,6 +936,10 @@
                                 <i class="fas fa-exchange-alt"></i> Change Status
                             </button>
                             ` : ''}
+                            <!-- View Status button for all users -->
+                            <button onclick="viewTicketStatus('${ticket.ticketCode || ticket.id}')" class="action-btn view-status-btn">
+                                <i class="fas fa-eye"></i> View Status
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1300,6 +1389,41 @@
                     <button type="submit" class="submit-btn">Save Changes</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Status View Modal -->
+    <div id="viewStatusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Ticket Status History</h2>
+                <span class="close" onclick="closeViewStatusModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="ticket-details">
+                    <div class="detail-row">
+                        <strong>Ticket Code:</strong> <span id="statusTicketCode"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Issue Type:</strong> <span id="statusIssueType"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Current Status:</strong> <span id="statusCurrentStatus"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Created By:</strong> <span id="statusCreatedBy"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Created At:</strong> <span id="statusCreatedAt"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Status Description:</strong> <span id="statusDescription"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button onclick="closeViewStatusModal()" class="action-btn">Close</button>
+            </div>
         </div>
     </div>
 </body>
