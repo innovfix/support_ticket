@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Live Server CORS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: white; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 12px 20px; margin: 10px 5px; cursor: pointer; border: none; border-radius: 6px; }
+        .primary { background: #007bff; color: white; }
+        .success-btn { background: #28a745; color: white; }
+        .danger { background: #dc3545; color: white; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Live Server CORS Test</h1>
+    
+    <div class="test-section info">
+        <h3>ℹ️ Test Information</h3>
+        <p><strong>Current URL:</strong> <span id="currentUrl"></span></p>
+        <p><strong>Origin:</strong> <span id="currentOrigin"></span></p>
+        <p><strong>Protocol:</strong> <span id="currentProtocol"></span></p>
+        <p><strong>Port:</strong> <span id="currentPort"></span></p>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Test 1: Simple Fetch to XAMPP API</h3>
+        <button onclick="testSimpleFetch()" class="primary">Test Simple Fetch</button>
+        <div id="simpleFetchResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Test 2: Test CORS Preflight</h3>
+        <button onclick="testCorsPreflight()" class="success-btn">Test CORS Preflight</button>
+        <div id="corsPreflightResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Test 3: Test with Credentials</h3>
+        <button onclick="testWithCredentials()" class="danger">Test with Credentials</button>
+        <div id="credentialsResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Test 4: Direct XAMPP Access</h3>
+        <button onclick="testDirectXampp()" class="primary">Test Direct XAMPP</button>
+        <div id="directXamppResult"></div>
+    </div>
+
+    <script>
+        // Display current page information
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('currentUrl').textContent = window.location.href;
+            document.getElementById('currentOrigin').textContent = window.location.origin;
+            document.getElementById('currentProtocol').textContent = window.location.protocol;
+            document.getElementById('currentPort').textContent = window.location.port || '80 (default)';
+        });
+
+        // Test 1: Simple Fetch
+        async function testSimpleFetch() {
+            const resultDiv = document.getElementById('simpleFetchResult');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const url = 'http://localhost/hima-support/api/tickets-list.php';
+                console.log('Testing simple fetch to:', url);
+                
+                const response = await fetch(url);
+                console.log('Response:', response);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Success! Response received<br>
+                            <strong>Status:</strong> ${response.status}<br>
+                            <strong>Tickets:</strong> ${data.tickets ? data.tickets.length : 'No tickets array'}<br>
+                            <strong>Response:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ HTTP Error: ${response.status}<br>
+                            <strong>Status Text:</strong> ${response.statusText}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Simple fetch error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Fetch Error: ${error.message}<br>
+                        <strong>Type:</strong> ${error.name}<br>
+                        <strong>Stack:</strong> <pre>${error.stack}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // Test 2: CORS Preflight
+        async function testCorsPreflight() {
+            const resultDiv = document.getElementById('corsPreflightResult');
+            resultDiv.innerHTML = 'Testing CORS preflight...';
+            
+            try {
+                const url = 'http://localhost/hima-support/api/tickets-list.php';
+                console.log('Testing CORS preflight to:', url);
+                
+                const response = await fetch(url, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                console.log('CORS preflight response:', response);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ CORS Preflight Response<br>
+                        <strong>Status:</strong> ${response.status}<br>
+                        <strong>Headers:</strong> <pre>${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('CORS preflight error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ CORS Preflight Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test 3: With Credentials
+        async function testWithCredentials() {
+            const resultDiv = document.getElementById('credentialsResult');
+            resultDiv.innerHTML = 'Testing with credentials...';
+            
+            try {
+                const url = 'http://localhost/hima-support/api/tickets-list.php';
+                console.log('Testing with credentials to:', url);
+                
+                const response = await fetch(url, {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Credentials response:', response);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Credentials Test Success<br>
+                            <strong>Status:</strong> ${response.status}<br>
+                            <strong>Tickets:</strong> ${data.tickets ? data.tickets.length : 'No tickets array'}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Credentials Test Failed: ${response.status}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Credentials test error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Credentials Test Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test 4: Direct XAMPP Access
+        async function testDirectXampp() {
+            const resultDiv = document.getElementById('directXamppResult');
+            resultDiv.innerHTML = 'Testing direct XAMPP access...';
+            
+            try {
+                // Try to open XAMPP URL in new tab
+                const xamppUrl = 'http://localhost/hima-support/view-all-tickets.html';
+                window.open(xamppUrl, '_blank');
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Opened XAMPP URL in new tab<br>
+                        <strong>URL:</strong> ${xamppUrl}<br>
+                        <strong>Note:</strong> Check the new tab to see if tickets load there
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Failed to open XAMPP URL: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
