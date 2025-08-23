@@ -1147,22 +1147,22 @@
                             </div>
                         </div>
                         
-                        <div class="ticket-actions">
-                            ${(currentUserRole === 'manager' || currentUserRole === 'staff') ? `
-                            <button onclick="editTicket(${ticket.id})" class="action-btn edit-btn">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            ` : ''}
-                            ${currentUserRole === 'manager' ? `
-                            <button onclick="changeTicketStatus('${ticket.ticketCode || ticket.id}')" class="action-btn status-btn">
-                                <i class="fas fa-exchange-alt"></i> Change Status
-                            </button>
-                            ` : ''}
-                            <!-- View Status button for all users -->
-                            <button onclick="viewTicketStatus('${ticket.ticketCode || ticket.id}')" class="action-btn view-status-btn">
-                                <i class="fas fa-eye"></i> View Status
-                            </button>
-                        </div>
+                                                 <div class="ticket-actions">
+                             ${(currentUserRole === 'manager' || currentUserRole === 'staff') ? `
+                             <button onclick="editTicket(${ticket.id})" class="action-btn edit-btn">
+                                 <i class="fas fa-edit"></i> Edit
+                             </button>
+                             ` : ''}
+                             ${currentUserRole === 'manager' ? `
+                             <button onclick="changeTicketStatus(${ticket.id})" class="action-btn status-btn">
+                                 <i class="fas fa-exchange-alt"></i> Change Status
+                             </button>
+                             ` : ''}
+                             <!-- View Status button for all users -->
+                             <button onclick="viewTicketStatus(${ticket.id})" class="action-btn view-status-btn">
+                                 <i class="fas fa-eye"></i> View Status
+                             </button>
+                         </div>
                     </div>
                 `;
             } catch (error) {
@@ -1418,75 +1418,67 @@
 
         // Status change functionality
 
-        function changeTicketStatus(ticketId) {
-            console.log('=== CHANGE TICKET STATUS FUNCTION CALLED ===');
-            console.log('Ticket ID:', ticketId);
-            console.log('All tickets:', allTickets);
-            console.log('Current user role:', currentUserRole);
-            
-            // Check if user has permission to change status
-            if (currentUserRole !== 'manager') {
-                alert('Only managers can change ticket status. Staff can only view tickets.');
-                return;
-            }
-            
-            // Store the ticket ID BEFORE opening the modal
-            console.log('Setting currentTicketIdForStatus to:', ticketId);
-            currentTicketIdForStatus = ticketId;
-            console.log('currentTicketIdForStatus after setting:', currentTicketIdForStatus);
-            
-            // Get current ticket to show current status
-            // Check if ticketId is numeric (ID) or string (ticket code)
-            let ticket;
-            if (!isNaN(ticketId) && ticketId.toString().match(/^\d+$/)) {
-                // ticketId is numeric, search by ID
-                ticket = allTickets.find(t => t.id == ticketId);
-            } else {
-                // ticketId is a string, search by ticket code
-                ticket = allTickets.find(t => t.ticketCode == ticketId);
-            }
-            console.log('Found ticket:', ticket);
-            
-            if (ticket) {
-                // Check if ticket is closed
-                if (ticket.status === 'closed') {
-                    alert('Cannot modify a closed ticket. This ticket is locked and cannot be changed.');
-                    return;
-                }
-                
-                // Set current status in dropdown
-                const statusSelect = document.getElementById('newStatus');
-                if (statusSelect) {
-                    statusSelect.value = ticket.status;
-                }
-                
-                // Hide warning and enable form for non-closed tickets
-                const warning = document.getElementById('closedTicketWarning');
-                const form = document.getElementById('changeStatusForm');
-                if (warning) warning.style.display = 'none';
-                if (form) form.style.display = 'block';
-            }
-            
-            // Show the modal
-            const modal = document.getElementById('changeStatusModal');
-            console.log('Modal element:', modal);
-            if (modal) {
-                modal.style.display = 'block';
-                console.log('Modal displayed successfully');
-                console.log('currentTicketIdForStatus after modal display:', currentTicketIdForStatus);
-                
-                // Debug: Check if form is visible
-                const form = document.getElementById('changeStatusForm');
-                const warning = document.getElementById('closedTicketWarning');
-                console.log('Form element:', form);
-                console.log('Warning element:', warning);
-                console.log('Form display style:', form ? form.style.display : 'N/A');
-                console.log('Warning display style:', warning ? warning.style.display : 'N/A');
-            } else {
-                console.error('Status change modal not found!');
-                alert('Status change modal not found!');
-            }
-        }
+                 function changeTicketStatus(ticketId) {
+             console.log('=== CHANGE TICKET STATUS FUNCTION CALLED ===');
+             console.log('Ticket ID:', ticketId);
+             console.log('All tickets:', allTickets);
+             console.log('Current user role:', currentUserRole);
+             
+             // Check if user has permission to change status
+             if (currentUserRole !== 'manager') {
+                 alert('Only managers can change ticket status. Staff can only view tickets.');
+                 return;
+             }
+             
+             // Store the ticket ID BEFORE opening the modal
+             console.log('Setting currentTicketIdForStatus to:', ticketId);
+             currentTicketIdForStatus = ticketId;
+             console.log('currentTicketIdForStatus after setting:', currentTicketIdForStatus);
+             
+             // Get current ticket to show current status
+             const ticket = allTickets.find(t => t.id == ticketId);
+             console.log('Found ticket:', ticket);
+             
+             if (ticket) {
+                 // Check if ticket is closed
+                 if (ticket.status === 'closed') {
+                     alert('Cannot modify a closed ticket. This ticket is locked and cannot be changed.');
+                     return;
+                 }
+                 
+                 // Set current status in dropdown
+                 const statusSelect = document.getElementById('newStatus');
+                 if (statusSelect) {
+                     statusSelect.value = ticket.status;
+                 }
+                 
+                 // Hide warning and enable form for non-closed tickets
+                 const warning = document.getElementById('closedTicketWarning');
+                 const form = document.getElementById('changeStatusForm');
+                 if (warning) warning.style.display = 'none';
+                 if (form) form.style.display = 'block';
+             }
+             
+             // Show the modal
+             const modal = document.getElementById('changeStatusModal');
+             console.log('Modal element:', modal);
+             if (modal) {
+                 modal.style.display = 'block';
+                 console.log('Modal displayed successfully');
+                 console.log('currentTicketIdForStatus after modal display:', currentTicketIdForStatus);
+                 
+                 // Debug: Check if form is visible
+                 const form = document.getElementById('changeStatusForm');
+                 const warning = document.getElementById('closedTicketWarning');
+                 console.log('Form element:', form);
+                 console.log('Warning element:', warning);
+                 console.log('Form display style:', form ? form.style.display : 'N/A');
+                 console.log('Warning display style:', warning ? warning.style.display : 'N/A');
+             } else {
+                 console.error('Status change modal not found!');
+                 alert('Status change modal not found!');
+             }
+         }
 
         function closeStatusModal() {
             const modal = document.getElementById('changeStatusModal');
@@ -1528,22 +1520,14 @@
                 return;
             }
             
-            try {
-                // Update via API
-                // Check if currentTicketIdForStatus is numeric (ID) or string (ticket code)
-                let requestBody = { 
-                    status: newStatus, 
-                    description: statusDescription, 
-                    changedBy: currentUserRole === 'manager' ? 'Manager' : 'Staff' 
-                };
-                
-                if (!isNaN(currentTicketIdForStatus) && currentTicketIdForStatus.toString().match(/^\d+$/)) {
-                    // It's a numeric ID
-                    requestBody.ticketId = parseInt(currentTicketIdForStatus);
-                } else {
-                    // It's a ticket code
-                    requestBody.ticketCode = currentTicketIdForStatus;
-                }
+                         try {
+                 // Update via API - always use numeric ID
+                 const requestBody = { 
+                     ticketId: parseInt(currentTicketIdForStatus),
+                     status: newStatus, 
+                     description: statusDescription, 
+                     changedBy: currentUserRole === 'manager' ? 'Manager' : 'Staff' 
+                 };
                 
                 console.log('=== API REQUEST DEBUG ===');
                 console.log('Request URL:', 'api/tickets-update-status.php');
@@ -1593,21 +1577,18 @@
                         await loadTickets();
                         console.log('Tickets list refreshed');
                         
-                        // Additional verification - check if tickets were actually updated
-                        setTimeout(() => {
-                            console.log('=== VERIFICATION DEBUG ===');
-                            console.log('Current allTickets after refresh:', allTickets);
-                            const updatedTicket = allTickets.find(t => 
-                                (t.id == ticketIdToClear) || 
-                                (t.ticketCode == ticketIdToClear)
-                            );
-                            if (updatedTicket) {
-                                console.log('Updated ticket found:', updatedTicket);
-                                console.log('New status:', updatedTicket.status);
-                            } else {
-                                console.log('Updated ticket not found in list');
-                            }
-                        }, 1000);
+                                                 // Additional verification - check if tickets were actually updated
+                         setTimeout(() => {
+                             console.log('=== VERIFICATION DEBUG ===');
+                             console.log('Current allTickets after refresh:', allTickets);
+                             const updatedTicket = allTickets.find(t => t.id == ticketIdToClear);
+                             if (updatedTicket) {
+                                 console.log('Updated ticket found:', updatedTicket);
+                                 console.log('New status:', updatedTicket.status);
+                             } else {
+                                 console.log('Updated ticket not found in list');
+                             }
+                         }, 1000);
                     } else {
                         console.error('API returned success: false');
                         console.error('Error message:', result.error);
