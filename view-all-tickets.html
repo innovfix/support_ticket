@@ -825,21 +825,271 @@
             }
         }
 
-        /* Ensure tickets grid maintains consistent card heights */
+        /* Fixed Grid Layout - No More Overlapping */
         .tickets-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-            align-items: stretch;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+            align-items: start;
             justify-items: center;
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            margin: 0;
         }
 
         .tickets-grid .ticket-card {
-            height: 350px;
-            min-height: 350px;
-            max-height: 350px;
             width: 100%;
-            max-width: 400px;
+            max-width: 100%;
+            min-width: 0;
+            height: auto;
+            min-height: 350px;
+            max-height: none;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* Fixed Ticket Card Layout */
+        .ticket-card {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid #4b5563;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 350px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            /* Prevent overlapping */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Fixed Ticket Header - No Overlapping */
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 12px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .ticket-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ticket-status-badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        /* Fixed Status Badge - No Text Overflow */
+        .status-badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Fixed Ticket Content - Better Text Handling */
+        .ticket-content {
+            margin-bottom: 20px;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .ticket-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f9fafb;
+            margin: 0 0 12px 0;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .ticket-description {
+            color: #d1d5db;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            max-height: 100px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            width: 100%;
+            flex: 1;
+            text-overflow: ellipsis;
+            position: relative;
+        }
+
+        /* Fixed Ticket Meta - Better Grid */
+        .ticket-meta {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+            margin-top: auto;
+            width: 100%;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            padding: 4px 0;
+            min-height: 20px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .meta-item i {
+            color: #60a5fa;
+            width: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .meta-item span {
+            flex: 1;
+            min-width: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Fixed Ticket Actions - No Button Overlapping */
+        .ticket-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: stretch;
+            flex-wrap: wrap;
+            margin-top: auto;
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .action-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+            min-height: 44px;
+            box-sizing: border-box;
+            width: 100%;
+            text-align: center;
+            /* Prevent overlapping */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Fixed Button Styles */
+        .status-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            border: 1px solid #a855f7;
+            width: 100%;
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 1px solid #3b82f6;
+            width: 100%;
+        }
+
+        .view-status-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: 1px solid #10b981;
+            width: 100%;
+        }
+
+        /* Fixed Dashboard Actions */
+        .dashboard-actions {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .status-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+            min-width: 200px;
+        }
+
+        .status-filter select {
+            padding: 10px 12px;
+            border: 2px solid #4b5563;
+            border-radius: 8px;
+            background: #374151;
+            color: #f9fafb;
+            font-size: 0.9rem;
+            min-width: 150px;
+            width: 100%;
+            min-height: 44px;
+        }
+
+        /* Fixed Container Layout */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .tickets-section {
+            margin-top: 20px;
+            width: 100%;
         }
 
         .last-updated.recent {
@@ -1457,6 +1707,646 @@
                 background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
                 border-color: #374151;
             }
+        }
+
+        /* Responsive Design - Fixed Mobile Issues */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                margin: 10px !important;
+                padding: 10px !important;
+                width: calc(100% - 20px) !important;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 1.5rem !important;
+                margin-bottom: 8px !important;
+            }
+            
+            .dashboard-header p {
+                font-size: 0.9rem !important;
+            }
+            
+            .dashboard-header h1 i {
+                margin-right: 12px !important;
+                font-size: 1.8rem !important;
+            }
+            
+            /* Fixed Mobile Grid - No Overlapping */
+            .tickets-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+                justify-items: stretch !important;
+                align-items: stretch !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            .ticket-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                min-height: 320px !important;
+                height: auto !important;
+                padding: 16px !important;
+                box-sizing: border-box !important;
+            }
+            
+            /* Fixed Mobile Header - No Overlapping */
+            .ticket-header {
+                flex-direction: column !important;
+                gap: 12px !important;
+                align-items: stretch !important;
+                margin-bottom: 16px !important;
+            }
+            
+            .ticket-info {
+                width: 100% !important;
+            }
+            
+            .ticket-status-badges {
+                justify-content: flex-start !important;
+                width: 100% !important;
+            }
+            
+            .copy-btn {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 0.7rem !important;
+            }
+
+            /* Fixed Mobile Meta - No Overlapping */
+            .ticket-meta {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+                margin-bottom: 16px !important;
+            }
+
+            /* Fixed Mobile Actions - No Button Overlapping */
+            .ticket-actions {
+                justify-content: stretch !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+
+            .action-btn {
+                flex: 1 !important;
+                justify-content: center !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                padding: 12px 16px !important;
+                font-size: 0.85rem !important;
+                min-height: 48px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                /* Prevent mobile button overlapping */
+                margin: 0 !important;
+                border-radius: 8px !important;
+            }
+
+            .ticket-description {
+                max-height: 80px !important;
+                -webkit-line-clamp: 3 !important;
+                margin-bottom: 12px !important;
+            }
+
+            /* Fixed Mobile Dashboard Actions - No Overlapping */
+            .dashboard-actions {
+                flex-direction: column !important;
+                gap: 16px !important;
+                align-items: stretch !important;
+                margin-bottom: 20px !important;
+                width: 100% !important;
+            }
+            
+            .status-filter {
+                width: 100% !important;
+                order: 1 !important;
+            }
+            
+            .status-filter select {
+                width: 100% !important;
+                padding: 12px !important;
+                font-size: 1rem !important;
+                min-height: 48px !important;
+            }
+            
+            .dashboard-actions .action-btn {
+                width: 100% !important;
+                padding: 12px 16px !important;
+                font-size: 0.9rem !important;
+                min-height: 48px !important;
+                order: 2 !important;
+                margin: 0 !important;
+            }
+
+            /* Fixed Mobile Modal - No Overlapping */
+            .modal-content {
+                width: 95% !important;
+                margin: 5% auto !important;
+                max-width: 90vw !important;
+            }
+            
+            .modal-header {
+                padding: 12px 16px !important;
+            }
+            
+            .modal-header h2 {
+                font-size: 1.1rem !important;
+            }
+            
+            .form-group {
+                margin: 12px 16px !important;
+            }
+            
+            .form-actions {
+                padding: 12px 16px !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+            
+            .form-actions button {
+                width: 100% !important;
+                padding: 12px !important;
+                min-height: 48px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .dashboard-container {
+                margin: 5px !important;
+                padding: 5px !important;
+                width: calc(100% - 10px) !important;
+            }
+            
+            .dashboard-header {
+                padding: 12px !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 1.3rem !important;
+            }
+            
+            .dashboard-header p {
+                font-size: 0.8rem !important;
+            }
+            
+            /* Fixed Small Mobile Grid */
+            .tickets-grid {
+                gap: 16px !important;
+                padding: 0 !important;
+            }
+            
+            .ticket-card {
+                padding: 12px !important;
+                min-height: 300px !important;
+                border-radius: 12px !important;
+                margin: 0 !important;
+            }
+            
+            .ticket-title {
+                font-size: 1.1rem !important;
+                margin-bottom: 8px !important;
+            }
+            
+            .ticket-description {
+                font-size: 0.9rem !important;
+                max-height: 70px !important;
+                -webkit-line-clamp: 3 !important;
+                margin-bottom: 12px !important;
+            }
+            
+            .ticket-code {
+                font-size: 1rem !important;
+                padding: 4px 8px !important;
+            }
+            
+            .ticket-date {
+                font-size: 0.8rem !important;
+            }
+            
+            /* Fixed Small Mobile Meta */
+            .ticket-meta {
+                gap: 8px !important;
+                margin-bottom: 12px !important;
+            }
+            
+            .meta-item {
+                font-size: 0.8rem !important;
+                gap: 6px !important;
+                padding: 2px 0 !important;
+            }
+            
+            .meta-item i {
+                width: 14px !important;
+                font-size: 0.8rem !important;
+            }
+            
+            /* Fixed Small Mobile Actions - No Button Overlapping */
+            .ticket-actions {
+                gap: 8px !important;
+                margin-top: 12px !important;
+            }
+            
+            .action-btn {
+                padding: 10px 12px !important;
+                font-size: 0.8rem !important;
+                min-height: 44px !important;
+                border-radius: 6px !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            
+            .action-btn i {
+                font-size: 0.75rem !important;
+            }
+            
+            /* Fixed Small Mobile Dashboard Actions */
+            .dashboard-actions {
+                gap: 12px !important;
+                margin-bottom: 16px !important;
+            }
+            
+            .status-filter label {
+                font-size: 0.8rem !important;
+                margin-bottom: 4px !important;
+            }
+            
+            .status-filter select {
+                padding: 10px !important;
+                font-size: 0.9rem !important;
+                min-height: 44px !important;
+            }
+            
+            .dashboard-actions .action-btn {
+                padding: 10px 14px !important;
+                font-size: 0.8rem !important;
+                min-height: 44px !important;
+                margin: 0 !important;
+            }
+            
+            /* Fixed Small Mobile Modal */
+            .modal-content {
+                width: 98% !important;
+                margin: 2% auto !important;
+                border-radius: 8px !important;
+            }
+            
+            .modal-header {
+                padding: 10px 12px !important;
+                border-radius: 8px 8px 0 0 !important;
+            }
+            
+            .modal-header h2 {
+                font-size: 1rem !important;
+            }
+            
+            .close {
+                font-size: 24px !important;
+            }
+            
+            .form-group {
+                margin: 10px 12px !important;
+            }
+            
+            .form-group label {
+                font-size: 0.8rem !important;
+                margin-bottom: 4px !important;
+            }
+            
+            .form-group select,
+            .form-group textarea,
+            .form-group input[type="text"] {
+                padding: 8px 10px !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .form-actions {
+                padding: 10px 12px !important;
+                gap: 8px !important;
+            }
+            
+            .form-actions button {
+                padding: 10px !important;
+                font-size: 0.85rem !important;
+            }
+        }
+        
+        /* Fixed Extra Small Mobile */
+        @media (max-width: 360px) {
+            .dashboard-header h1 {
+                font-size: 1.2rem !important;
+            }
+            
+            .dashboard-header p {
+                font-size: 0.75rem !important;
+            }
+            
+            .ticket-card {
+                padding: 10px !important;
+                min-height: 280px !important;
+                margin: 0 !important;
+            }
+            
+            .ticket-title {
+                font-size: 1rem !important;
+            }
+            
+            .ticket-description {
+                font-size: 0.8rem !important;
+                max-height: 60px !important;
+                -webkit-line-clamp: 2 !important;
+            }
+            
+            .action-btn {
+                padding: 8px 10px !important;
+                font-size: 0.75rem !important;
+                min-height: 40px !important;
+                margin: 0 !important;
+            }
+            
+            .modal-content {
+                width: 99% !important;
+                margin: 1% auto !important;
+            }
+        }
+        
+        /* Fixed Landscape Mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .dashboard-container {
+                margin: 5px !important;
+                padding: 5px !important;
+            }
+            
+            .dashboard-header {
+                margin-bottom: 15px !important;
+                padding: 10px !important;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 1.3rem !important;
+                margin-bottom: 5px !important;
+            }
+            
+            .dashboard-header p {
+                font-size: 0.8rem !important;
+            }
+            
+            /* Fixed Landscape Grid */
+            .tickets-grid {
+                gap: 12px !important;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            }
+            
+            .ticket-card {
+                min-height: 260px !important;
+                padding: 12px !important;
+                margin: 0 !important;
+            }
+            
+            .ticket-description {
+                max-height: 50px !important;
+                -webkit-line-clamp: 2 !important;
+            }
+            
+            /* Fixed Landscape Actions */
+            .dashboard-actions {
+                flex-direction: row !important;
+                gap: 12px !important;
+                flex-wrap: wrap !important;
+            }
+            
+            .status-filter {
+                flex: 1 !important;
+                min-width: 150px !important;
+            }
+            
+            .dashboard-actions .action-btn {
+                flex: 0 1 auto !important;
+                min-width: 120px !important;
+                margin: 0 !important;
+            }
+        }
+
+        /* Additional Fixes for Complete Responsiveness */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Ensure no horizontal scrolling */
+        .dashboard-container,
+        .tickets-section,
+        .tickets-grid {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        /* Fixed Status Badge Text */
+        .status-badge {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            max-width: 120px;
+            min-width: 80px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Fixed Button Text */
+        .action-btn {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        /* Fixed Ticket Code */
+        .ticket-code {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Fixed Ticket Title */
+        .ticket-title {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Fixed Ticket Description */
+        .ticket-description {
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Fixed Meta Items */
+        .meta-item span {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Fixed Copy Button */
+        .copy-btn {
+            flex-shrink: 0;
+            min-width: 32px;
+            min-height: 32px;
+        }
+
+        /* Fixed Header Layout */
+        .dashboard-header-bar {
+            width: 100%;
+            max-width: 100vw;
+            overflow: hidden;
+        }
+
+        .header-left,
+        .header-right {
+            overflow: hidden;
+        }
+
+        .app-name {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Fixed Form Elements */
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Fixed Modal */
+        .modal {
+            overflow: hidden;
+        }
+
+        .modal-content {
+            max-width: 100vw;
+            max-height: 100vh;
+            overflow: auto;
+        }
+
+        /* Fixed Loading and No Tickets Messages */
+        .loading-message,
+        .no-tickets-message {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Fixed Dashboard Actions */
+        .dashboard-actions {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .status-filter {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .status-filter select {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Fixed Ticket Grid Container */
+        .tickets-section {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Fixed Individual Ticket Cards */
+        .ticket-card {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* Fixed Ticket Header Container */
+        .ticket-header {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Fixed Ticket Content Container */
+        .ticket-content {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Fixed Ticket Meta Container */
+        .ticket-meta {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Fixed Ticket Actions Container */
+        .ticket-actions {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Fixed Action Buttons */
+        .ticket-actions .action-btn {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 10px 16px;
+        }
+
+        /* Fixed Status Filter */
+        .status-filter label {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Fixed Dashboard Header */
+        .dashboard-header {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .dashboard-header h1 {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dashboard-header p {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
