@@ -270,9 +270,12 @@
         .edit-btn {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             border: 1px solid #3b82f6;
-            flex: 1;
-            min-width: 109px; /* Increased from 84px by 30% */
+            flex: 0 0 auto;
+            min-width: 80px;
+            max-width: 90px;
             justify-content: center;
+            padding: 8px 12px;
+            font-size: 0.85rem;
         }
 
         .edit-btn:hover {
@@ -1047,6 +1050,10 @@
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             border: 1px solid #3b82f6;
             width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+            padding: 12px;
+            font-size: 1rem;
         }
 
         .view-status-btn {
