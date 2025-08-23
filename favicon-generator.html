@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            text-align: center;
+        }
+        .generator-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .favicon-preview {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            border-radius: 12px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .instructions {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #8b5cf6;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .step-number {
+            background: #8b5cf6;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="generator-container">
+        <h1>🔧 Favicon Generator for Query Desk</h1>
+        
+        <div class="favicon-preview">
+            QD
+        </div>
+        
+        <p>This tool helps you create a favicon for your Query Desk website.</p>
+        
+        <div class="instructions">
+            <h3>How to create your favicon:</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Option A:</strong> Use an online favicon generator
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Option B:</strong> Create a simple text-based favicon
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Option C:</strong> Use the preview above as inspiration
+            </div>
+        </div>
+        
+        <h3>Quick Links:</h3>
+        <a href="https://favicon.io/" target="_blank" class="download-btn">Favicon.io</a>
+        <a href="https://www.favicon-generator.org/" target="_blank" class="download-btn">Favicon Generator</a>
+        <a href="https://realfavicongenerator.net/" target="_blank" class="download-btn">RealFaviconGenerator</a>
+        
+        <div class="instructions">
+            <h3>After creating your favicon:</h3>
+            <ol>
+                <li>Save it as <code>favicon.ico</code></li>
+                <li>Place it in your website's root directory (same folder as index.html)</li>
+                <li>Refresh your browser to see the favicon</li>
+            </ol>
+        </div>
+        
+        <p><strong>Note:</strong> I've already added the favicon link to all your HTML files. You just need to create the actual favicon.ico file!</p>
+    </div>
+</body>
+</html>
