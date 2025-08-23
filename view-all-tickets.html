@@ -647,15 +647,40 @@
             font-size: 0.9rem;
         }
         
-        .status-filter select {
-            padding: 8px 12px;
-            border: 2px solid #4b5563;
-            border-radius: 8px;
-            background: #374151;
-            color: #f9fafb;
-            font-size: 0.9rem;
-            min-width: 150px;
-        }
+                 .status-filter select {
+             padding: 8px 12px;
+             border: 2px solid #4b5563;
+             border-radius: 8px;
+             background: #374151;
+             color: #f9fafb;
+             font-size: 0.9rem;
+             min-width: 150px;
+         }
+         
+         /* Closed ticket warning styles */
+         .closed-ticket-warning {
+             background: rgba(239, 68, 68, 0.1);
+             border: 1px solid rgba(239, 68, 68, 0.3);
+             border-radius: 8px;
+             padding: 16px;
+             margin: 16px 20px;
+             display: flex;
+             align-items: center;
+             gap: 12px;
+         }
+         
+         .warning-content {
+             display: flex;
+             align-items: center;
+             gap: 8px;
+             color: #fca5a5;
+             font-weight: 600;
+         }
+         
+         .warning-content i {
+             color: #ef4444;
+             font-size: 1.2rem;
+         }
     </style>
 </head>
 <body>
@@ -987,18 +1012,30 @@
                      const statusText = ticket.status ? ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1) : 'Unknown';
                      document.getElementById('currentStatus').textContent = statusText;
                      
+                     // Debug: Check what fields are actually available
+                     console.log('=== STATUS MODAL DEBUG ===');
+                     console.log('Ticket fields available:', Object.keys(ticket));
+                     console.log('statusDescription:', ticket.statusDescription);
+                     console.log('status_description:', ticket.status_description);
+                     console.log('description:', ticket.description);
+                     console.log('issueDescription:', ticket.issueDescription);
+                     
                      // Set status description with better fallback logic
                      let statusDescription = 'No status description available';
+                     
+                     // First try to get status description from various possible fields
                      if (ticket.statusDescription && ticket.statusDescription.trim() !== '') {
                          statusDescription = ticket.statusDescription;
+                         console.log('Using statusDescription field:', statusDescription);
                      } else if (ticket.status_description && ticket.status_description.trim() !== '') {
                          statusDescription = ticket.status_description;
-                     } else if (ticket.statusHistory && ticket.statusHistory.length > 0) {
-                         // Try to get from status history if available
-                         const latestStatus = ticket.statusHistory[ticket.statusHistory.length - 1];
-                         if (latestStatus.description && latestStatus.description.trim() !== '') {
-                             statusDescription = latestStatus.description;
-                         }
+                         console.log('Using status_description field:', statusDescription);
+                     } else if (ticket.description && ticket.description.trim() !== '') {
+                         statusDescription = ticket.description;
+                         console.log('Using description field:', statusDescription);
+                     } else if (ticket.issueDescription && ticket.issueDescription.trim() !== '') {
+                         statusDescription = ticket.issueDescription;
+                         console.log('Using issueDescription field:', statusDescription);
                      }
                      
                      // If still no description, show status-specific default messages
@@ -1019,6 +1056,7 @@
                              default:
                                  statusDescription = 'No additional status information available';
                          }
+                         console.log('Using default status description:', statusDescription);
                      }
                      
                      // Set last updated time
@@ -1029,7 +1067,7 @@
                      const updatedBy = ticket.assignedByName || ticket.assignedBy || 'System';
                      document.getElementById('updatedBy').textContent = updatedBy;
                      
-                     console.log('Final status description:', statusDescription);
+                     console.log('Final status description to display:', statusDescription);
                      document.getElementById('statusDescription').textContent = statusDescription;
                      
                      // Show the modal
