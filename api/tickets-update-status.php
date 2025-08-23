@@ -82,6 +82,6 @@ if ($stmt->rowCount() === 0) {
 
 // Optionally: a status history table would be better, but not added yet
 error_log("Status update successful, sending response");
-json_response(['ok' => true]);
+json_response(['success' => true, 'message' => 'Ticket status updated successfully']);
 
 
