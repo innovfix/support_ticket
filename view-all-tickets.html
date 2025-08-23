@@ -77,16 +77,49 @@
             align-items: center;
         }
 
-        .status-badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
+                 .status-badge {
+             padding: 8px 16px;
+             border-radius: 20px;
+             font-size: 0.85rem;
+             font-weight: 600;
+             text-transform: uppercase;
+             letter-spacing: 0.5px;
+             color: white;
+             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+         }
+         
+         /* Copy button styling */
+         .copy-btn {
+             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+             border: 1px solid #6b7280;
+             border-radius: 50%;
+             width: 32px;
+             height: 32px;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             cursor: pointer;
+             transition: all 0.3s ease;
+             color: white;
+             font-size: 0.8rem;
+             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+         }
+         
+         .copy-btn:hover {
+             background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+             border-color: #9ca3af;
+             transform: translateY(-1px);
+             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+         }
+         
+         .copy-btn:active {
+             transform: translateY(0);
+             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+         }
+         
+         .copy-btn i {
+             font-size: 0.75rem;
+         }
 
         .ticket-content {
             margin-bottom: 24px;
@@ -445,11 +478,17 @@
                 height: auto !important;
             }
             
-            .ticket-header {
-                flex-direction: column;
-                gap: 16px;
-                align-items: flex-start;
-            }
+                         .ticket-header {
+                 flex-direction: column;
+                 gap: 16px;
+                 align-items: flex-start;
+             }
+             
+             .copy-btn {
+                 width: 28px !important;
+                 height: 28px !important;
+                 font-size: 0.7rem !important;
+             }
 
             .ticket-meta {
                 grid-template-columns: 1fr;
@@ -1143,15 +1182,20 @@
                 
                 return `
                     <div class="ticket-card">
-                        <div class="ticket-header">
-                            <div class="ticket-info">
-                                <span class="ticket-code">${ticket.ticketCode || 'N/A'}</span>
-                                <span class="ticket-date">${createdDate} ${createdTime}</span>
-                            </div>
-                            <div class="ticket-status-badges">
-                                <span class="status-badge" style="background: ${statusColor};">${ticket.status || 'Unknown'}</span>
-                            </div>
-                        </div>
+                                                 <div class="ticket-header">
+                             <div class="ticket-info">
+                                 <span class="ticket-code">${ticket.ticketCode || 'N/A'}</span>
+                                 <span class="ticket-date">${createdDate} ${createdTime}</span>
+                             </div>
+                             <div class="ticket-status-badges">
+                                 <span class="status-badge" style="background: ${statusColor};">${ticket.status || 'Unknown'}</span>
+                                 ${currentUserRole === 'manager' ? `
+                                 <button onclick="copyTicketInfo(${ticket.id})" class="copy-btn" title="Copy ticket info">
+                                     <i class="fas fa-copy"></i>
+                                 </button>
+                                 ` : ''}
+                             </div>
+                         </div>
                         
                         <div class="ticket-content">
                             <h4 class="ticket-title">${ticket.issueType || 'No Issue Type'}</h4>
@@ -1435,12 +1479,123 @@
             window.location.href = 'index.html';
         }
 
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        }
+                 // Close modals when clicking outside
+         window.onclick = function(event) {
+             if (event.target.classList.contains('modal')) {
+                 event.target.style.display = 'none';
+             }
+         }
+         
+         // Copy ticket information function
+         async function copyTicketInfo(ticketId) {
+             try {
+                 const ticket = allTickets.find(t => t.id == ticketId);
+                 if (!ticket) {
+                     alert('Ticket not found');
+                     return;
+                 }
+                 
+                 // Format the ticket information for copying
+                 const ticketInfo = `Ticket Information:
+Ticket Code: ${ticket.ticketCode || 'N/A'}
+Status: ${ticket.status || 'Unknown'}
+Issue Type: ${ticket.issueType || 'No Issue Type'}
+Description: ${ticket.description || ticket.issueDescription || 'No description provided'}
+Created By: ${ticket.createdBy || 'Unknown'}
+User ID: ${ticket.mobileOrUserId || 'N/A'}
+Created: ${new Date(ticket.createdAt).toLocaleDateString('en-US', {
+                     year: 'numeric',
+                     month: '2-digit',
+                     day: '2-digit'
+                 })} ${new Date(ticket.createdAt).toLocaleTimeString('en-US', {
+                     hour: '2-digit',
+                     minute: '2-digit',
+                     second: '2-digit',
+                     hour12: true
+                 })}
+${ticket.assignedToName ? `Assigned To: ${ticket.assignedToName}` : ''}
+${ticket.statusDescription ? `Status Description: ${ticket.statusDescription}` : ''}`;
+                 
+                 // Copy to clipboard
+                 await navigator.clipboard.writeText(ticketInfo);
+                 
+                 // Show success feedback
+                 const copyBtn = event.target.closest('.copy-btn');
+                 if (copyBtn) {
+                     const originalIcon = copyBtn.innerHTML;
+                     copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                     copyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                     copyBtn.style.borderColor = '#10b981';
+                     
+                     // Reset after 2 seconds
+                     setTimeout(() => {
+                         copyBtn.innerHTML = originalIcon;
+                         copyBtn.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+                         copyBtn.style.borderColor = '#6b7280';
+                     }, 2000);
+                 }
+                 
+                 // Show success message
+                 showCopySuccess();
+                 
+             } catch (error) {
+                 console.error('Error copying ticket info:', error);
+                 alert('Failed to copy ticket information. Please try again.');
+             }
+         }
+         
+         // Show copy success message
+         function showCopySuccess() {
+             // Create a temporary success message
+             const successMsg = document.createElement('div');
+             successMsg.className = 'copy-success-message';
+             successMsg.innerHTML = '<i class="fas fa-check-circle"></i> Ticket info copied!';
+             successMsg.style.cssText = `
+                 position: fixed;
+                 top: 20px;
+                 right: 20px;
+                 background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                 color: white;
+                 padding: 12px 20px;
+                 border-radius: 8px;
+                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                 z-index: 10000;
+                 font-weight: 600;
+                 display: flex;
+                 align-items: center;
+                 gap: 8px;
+                 animation: slideInRight 0.3s ease;
+             `;
+             
+             // Add animation keyframes
+             if (!document.querySelector('#copy-animations')) {
+                 const style = document.createElement('style');
+                 style.id = 'copy-animations';
+                 style.textContent = `
+                     @keyframes slideInRight {
+                         from { transform: translateX(100%); opacity: 0; }
+                         to { transform: translateX(0); opacity: 1; }
+                     }
+                     @keyframes slideOutRight {
+                         from { transform: translateX(0); opacity: 1; }
+                         to { transform: translateX(100%); opacity: 0; }
+                     }
+                 `;
+                 document.head.appendChild(style);
+             }
+             
+             document.body.appendChild(successMsg);
+             
+             // Remove after 3 seconds
+             setTimeout(() => {
+                 successMsg.style.animation = 'slideOutRight 0.3s ease';
+                 setTimeout(() => {
+                     if (successMsg.parentNode) {
+                         successMsg.parentNode.removeChild(successMsg);
+                     }
+                 }, 300);
+             }, 3000);
+         }
 
 
 
