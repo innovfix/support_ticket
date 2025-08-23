@@ -1400,7 +1400,15 @@
             currentTicketIdForStatus = ticketId;
             
             // Get current ticket to show current status
-            const ticket = allTickets.find(t => t.id == ticketId || t.ticketCode == ticketId);
+            // Check if ticketId is numeric (ID) or string (ticket code)
+            let ticket;
+            if (!isNaN(ticketId) && ticketId.toString().match(/^\d+$/)) {
+                // ticketId is numeric, search by ID
+                ticket = allTickets.find(t => t.id == ticketId);
+            } else {
+                // ticketId is a string, search by ticket code
+                ticket = allTickets.find(t => t.ticketCode == ticketId);
+            }
             console.log('Found ticket:', ticket);
             
             if (ticket) {
@@ -1463,16 +1471,25 @@
             
             try {
                 // Update via API
-                const ticketCode = currentTicketIdForStatus;
+                // Check if currentTicketIdForStatus is numeric (ID) or string (ticket code)
+                let requestBody = { 
+                    status: newStatus, 
+                    description: statusDescription, 
+                    changedBy: currentUserRole === 'manager' ? 'Manager' : 'Staff' 
+                };
+                
+                if (!isNaN(currentTicketIdForStatus) && currentTicketIdForStatus.toString().match(/^\d+$/)) {
+                    // It's a numeric ID
+                    requestBody.ticketId = parseInt(currentTicketIdForStatus);
+                } else {
+                    // It's a ticket code
+                    requestBody.ticketCode = currentTicketIdForStatus;
+                }
+                
                 const response = await fetch('api/tickets-update-status.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        ticketCode, 
-                        status: newStatus, 
-                        description: statusDescription, 
-                        changedBy: currentUserRole === 'manager' ? 'Manager' : 'Staff' 
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 if (response.ok) {

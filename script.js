@@ -52,7 +52,7 @@ async function fetchTicketsFromApi(status = null) {
     return res.tickets || [];
 }
 
-async function updateTicketStatusViaApi(ticketCode, newStatus, description = '', changedBy = 'Manager') {
+async function updateTicketStatusViaApi(ticketCode, newStatus, description = '', changedBy = 'Manager', ticketId = null) {
     // Only include assignment fields if they exist (for create-ticket page)
     const assignedSelect = document.getElementById('assignToStaff');
     const assignedNameInput = document.getElementById('assignToStaffName');
@@ -60,11 +60,17 @@ async function updateTicketStatusViaApi(ticketCode, newStatus, description = '',
     const assignedToName = assignedNameInput ? assignedNameInput.value : '';
     
     const requestBody = { 
-        ticketCode, 
         status: newStatus, 
         description, 
         changedBy 
     };
+    
+    // Add either ticketCode or ticketId, but not both
+    if (ticketCode && ticketCode !== '') {
+        requestBody.ticketCode = ticketCode;
+    } else if (ticketId) {
+        requestBody.ticketId = ticketId;
+    }
     
     // Only add assignment fields if they have values
     if (assignedTo) requestBody.assignedTo = assignedTo;
@@ -1212,7 +1218,7 @@ function createTicketHTML(ticket) {
                 </div>
                 ` : `
                 <div class="ticket-actions">
-                    <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${ticket.id}')">
+                    <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${ticket.ticketCode || ticket.id}', '${ticket.id}')">
                         <i class="fas fa-edit"></i> Status
                     </button>
                 </div>
@@ -1523,7 +1529,7 @@ function displayManagerTickets() {
                     ? ticket.statusHistory[ticket.statusHistory.length - 1].description
                     : '');
             html += `
-            <div class="ticket-card ${ticket.status}">
+            <div class="ticket-card ${ticket.status}" data-ticket-code="${ticket.ticketCode || ticket.id}">
                 <div class="ticket-header">
                     <div class="ticket-info">
                         <h4>${ticket.issueType}</h4>
@@ -1615,7 +1621,7 @@ function displayManagerTickets() {
                     <button class="btn-edit btn-status-small" onclick="viewTicketStatusFromManager('${ticket.id}')">
                         <i class="fas fa-eye"></i> View Status
                     </button>
-                    <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${ticket.id}')">
+                    <button class="btn-edit btn-status-small" onclick="changeTicketStatus('${ticket.ticketCode || ticket.id}', '${ticket.id}')">
                         <i class="fas fa-edit"></i> Change Status
                     </button>
                 </div>
@@ -1813,22 +1819,59 @@ function restoreFilterSelection() {
 
 
 
-function changeTicketStatus(ticketId) {
+function changeTicketStatus(ticketCode, ticketId) {
     console.log('=== CHANGE TICKET STATUS FUNCTION CALLED ===');
+    console.log('Ticket Code:', ticketCode);
     console.log('Ticket ID:', ticketId);
+    console.log('Type of ticketCode:', typeof ticketCode);
     console.log('Type of ticketId:', typeof ticketId);
     
-    currentTicketId = ticketId;
+    // Store both ticket code and ID for later use
+    // If ticketCode is actually a numeric ID (fallback case), use ticketId instead
+    if (!isNaN(ticketCode) && ticketCode.toString().match(/^\d+$/)) {
+        currentTicketId = ticketId; // Use the actual ticket ID
+        currentTicketIdNum = ticketCode; // Store the numeric value
+    } else {
+        currentTicketId = ticketCode; // Use ticket code as primary identifier
+        currentTicketIdNum = ticketId; // Store numeric ID separately
+    }
+    
     console.log('Set currentTicketId to:', currentTicketId);
+    console.log('Set currentTicketIdNum to:', currentTicketIdNum);
     
-    // Get current ticket to show current status
-    const storedTickets = localStorage.getItem('tickets');
-    console.log('Stored tickets from localStorage:', storedTickets ? 'Found' : 'Not found');
-    const tickets = storedTickets ? JSON.parse(storedTickets) : [];
-    console.log('Parsed tickets array length:', tickets.length);
+    // Get current ticket to show current status - try API data first, then localStorage
+    let ticket = null;
     
-    // Try to find ticket by ID first, then by ticketCode
-    const ticket = tickets.find(t => t.id === ticketId || t.ticketCode === ticketId);
+    // First try to get from current displayed tickets (API data)
+    const ticketsList = document.getElementById('managerTicketsList');
+    if (ticketsList) {
+        // Look for the ticket in the current display
+        const ticketElements = ticketsList.querySelectorAll('.ticket-card');
+        for (let element of ticketElements) {
+            const ticketCodeElement = element.querySelector('[data-ticket-code]');
+            if (ticketCodeElement && ticketCodeElement.getAttribute('data-ticket-code') === ticketCode) {
+                // Extract ticket data from the displayed element
+                const issueType = element.querySelector('h4')?.textContent;
+                const status = element.querySelector('.status-badge')?.textContent?.toLowerCase();
+                if (issueType && status) {
+                    ticket = { issueType, status, ticketCode, id: ticketId };
+                    break;
+                }
+            }
+        }
+    }
+    
+    // If not found in display, try localStorage as fallback
+    if (!ticket) {
+        const storedTickets = localStorage.getItem('tickets');
+        console.log('Stored tickets from localStorage:', storedTickets ? 'Found' : 'Not found');
+        const tickets = storedTickets ? JSON.parse(storedTickets) : [];
+        console.log('Parsed tickets array length:', tickets.length);
+        
+        // Try to find ticket by ID first, then by ticketCode
+        ticket = tickets.find(t => t.id == ticketId || t.ticketCode === ticketCode);
+    }
+    
     console.log('Found ticket:', ticket);
     console.log('Ticket details:', ticket ? {
         id: ticket.id,
@@ -1897,6 +1940,7 @@ function closeStatusModal() {
         
         modal.style.display = 'none';
         currentTicketId = null;
+        currentTicketIdNum = null;
     }
 }
 
@@ -1915,13 +1959,24 @@ function updateTicketStatus() {
     }
     
     // Try server update first using ticket code if available
-    const ticketCode = currentTicketId; // our UI stores code in currentTicketId
-    updateTicketStatusViaApi(ticketCode, newStatus, statusDescription, 'Manager').then(() => {
+    // Check if currentTicketId is a numeric ID or actual ticket code
+    let ticketCode = currentTicketId;
+    let ticketId = currentTicketIdNum;
+    
+    // If currentTicketId is numeric, we need to send it as ticketId to the API
+    if (!isNaN(currentTicketId) && currentTicketId.toString().match(/^\d+$/)) {
+        ticketCode = null; // Clear ticket code since we're using ID
+        ticketId = parseInt(currentTicketId);
+    }
+    
+    console.log('Updating ticket with code:', ticketCode, 'and ID:', ticketId);
+    updateTicketStatusViaApi(ticketCode, newStatus, statusDescription, 'Manager', ticketId).then(() => {
         closeStatusModal();
         displayManagerTickets();
         updateManagerDashboardCounts();
         showSuccessMessage('Ticket status updated in database!');
         currentTicketId = null;
+        currentTicketIdNum = null;
     }).catch((err) => {
         // If server explicitly says not found or other error, do not silently fallback
         const message = (err && err.message) ? err.message : 'Update failed';
@@ -1961,6 +2016,7 @@ function updateTicketStatus() {
         updateManagerDashboardCounts();
         showInfoMessage('Backend not reachable. Status updated locally.');
         currentTicketId = null;
+        currentTicketIdNum = null;
     });
 }
 
@@ -1983,8 +2039,9 @@ function viewScreenshot(screenshotData) {
     document.body.appendChild(modal);
 }
 
-// Global variable to track current ticket for status changes
-let currentTicketId = null;
+// Global variables to track current ticket for status changes
+let currentTicketId = null; // Ticket code (e.g., "TKT-0001")
+let currentTicketIdNum = null; // Numeric ID from database
 
 function clearAllTickets() {
     if (!confirm('Are you sure you want to clear ALL tickets? This action cannot be undone.')) return;

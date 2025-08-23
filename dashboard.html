@@ -304,14 +304,22 @@
         }
 
         // Global variable to track current ticket for status changes
-        let currentTicketIdForStatus = null;
+        let currentTicketCodeForStatus = null;
 
         // Function to change ticket status (called from manager dashboard)
-        function changeTicketStatus(ticketId) {
+        function changeTicketStatus(ticketCode, ticketId) {
             console.log('=== CHANGE TICKET STATUS FUNCTION CALLED FROM DASHBOARD ===');
+            console.log('Ticket Code:', ticketCode);
             console.log('Ticket ID:', ticketId);
             
-            currentTicketIdForStatus = ticketId;
+            // Check if ticketCode is actually a numeric ID (fallback case)
+            if (!isNaN(ticketCode) && ticketCode.toString().match(/^\d+$/)) {
+                // ticketCode is actually a numeric ID, use ticketId instead
+                currentTicketCodeForStatus = ticketId; // Use the actual ticket ID
+            } else {
+                // ticketCode is a proper ticket code
+                currentTicketCodeForStatus = ticketCode; // Use ticket code for API calls
+            }
             
             // Show the modal
             const modal = document.getElementById('changeStatusModal');
@@ -333,7 +341,7 @@
                 document.getElementById('statusDescription').value = '';
                 
                 modal.style.display = 'none';
-                currentTicketIdForStatus = null;
+                currentTicketCodeForStatus = null;
             }
         }
 
@@ -347,30 +355,34 @@
                 return;
             }
             
-            if (!currentTicketIdForStatus) {
+            if (!currentTicketCodeForStatus) {
                 alert('No ticket selected');
                 return;
             }
             
             try {
                 // Update via API
-                const ticketId = currentTicketIdForStatus;
-                console.log('Sending status update request:', { 
-                    ticketId,
+                // Check if currentTicketCodeForStatus is numeric (ID) or string (ticket code)
+                let requestBody = { 
                     status: newStatus, 
                     description: statusDescription, 
                     changedBy: 'Manager' 
-                });
+                };
+                
+                if (!isNaN(currentTicketCodeForStatus) && currentTicketCodeForStatus.toString().match(/^\d+$/)) {
+                    // It's a numeric ID
+                    requestBody.ticketId = parseInt(currentTicketCodeForStatus);
+                    console.log('Sending status update request with ID:', requestBody);
+                } else {
+                    // It's a ticket code
+                    requestBody.ticketCode = currentTicketCodeForStatus;
+                    console.log('Sending status update request with code:', requestBody);
+                }
                 
                 const response = await fetch('api/tickets-update-status.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        ticketId,
-                        status: newStatus, 
-                        description: statusDescription, 
-                        changedBy: 'Manager' 
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 console.log('Response status:', response.status);
