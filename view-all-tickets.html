@@ -538,17 +538,22 @@
                 gap: 15px !important;
                 align-items: stretch !important;
                 margin-bottom: 20px !important;
+                padding: 0 20% !important;
+                box-sizing: border-box !important;
             }
             
             .status-filter {
                 width: 100% !important;
                 order: 1;
+                min-width: 100% !important;
+                max-width: 100% !important;
             }
             
             .status-filter select {
                 width: 100% !important;
                 padding: 12px !important;
                 font-size: 1rem !important;
+                min-width: 100% !important;
             }
             
             .dashboard-actions .action-btn {
@@ -557,6 +562,9 @@
                 font-size: 0.9rem !important;
                 min-height: 44px !important;
                 order: 2;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                flex: 1 1 100% !important;
             }
 
             .modal-content {
@@ -1352,17 +1360,19 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Mobile-optimized dashboard actions */
+        /* Desktop dashboard actions - horizontal layout */
         .dashboard-actions {
             display: flex;
             gap: 20px;
             align-items: center;
             margin-bottom: 30px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: center;
-            /* Mobile layout optimization */
-            flex-direction: column;
-            align-items: stretch;
+            /* Desktop layout - horizontal row */
+            flex-direction: row;
+            align-items: center;
+            padding: 0 20%;
+            box-sizing: border-box;
         }
 
         .status-filter {
@@ -1370,8 +1380,10 @@
             flex-direction: column;
             gap: 8px;
             align-items: flex-start;
-            /* Mobile optimization */
-            width: 100%;
+            /* Desktop layout - fixed width */
+            width: auto;
+            min-width: 200px;
+            flex: 0 0 auto;
         }
 
         .status-filter label {
@@ -1389,13 +1401,26 @@
             background: #374151;
             color: #f9fafb;
             font-size: 0.9rem;
-            min-width: 150px;
-            /* Mobile select optimization */
-            width: 100%;
+            min-width: 200px;
+            /* Desktop layout - fixed width */
+            width: auto;
             min-height: 44px;
-            /* Mobile touch target improvement */
+            /* Touch target improvement */
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Dashboard action buttons - desktop row layout */
+        .dashboard-actions .action-btn {
+            flex: 0 0 auto;
+            min-width: 160px;
+            max-width: 200px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            min-height: 44px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Mobile-optimized modal improvements */
