@@ -186,6 +186,7 @@
             justify-content: flex-end;
             flex-wrap: wrap;
             margin-top: auto;
+            width: 100%;
         }
 
         .action-btn {
@@ -201,16 +202,30 @@
             gap: 8px;
             text-decoration: none;
             color: white;
+            min-height: 44px;
+            box-sizing: border-box;
         }
 
         .action-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
+        
+        /* Ensure consistent button sizing in ticket actions */
+        .ticket-actions .action-btn {
+            flex: 1;
+            min-width: 120px;
+            max-width: 150px;
+            justify-content: center;
+            text-align: center;
+        }
 
         .status-btn {
             background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
             border: 1px solid #a855f7;
+            flex: 1;
+            min-width: 120px;
+            justify-content: center;
         }
 
         .status-btn:hover {
@@ -221,6 +236,9 @@
         .edit-btn {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             border: 1px solid #3b82f6;
+            flex: 1;
+            min-width: 120px;
+            justify-content: center;
         }
 
         .edit-btn:hover {
@@ -231,6 +249,9 @@
         .view-status-btn {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border: 1px solid #10b981;
+            flex: 1;
+            min-width: 120px;
+            justify-content: center;
         }
 
         .view-status-btn:hover {
@@ -416,11 +437,15 @@
 
             .ticket-actions {
                 justify-content: stretch;
+                flex-direction: column;
+                gap: 8px;
             }
 
             .action-btn {
                 flex: 1;
                 justify-content: center;
+                min-width: 100%;
+                max-width: 100%;
             }
 
             .ticket-description {
