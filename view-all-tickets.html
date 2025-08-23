@@ -588,68 +588,7 @@
             border-color: rgba(16, 185, 129, 0.2);
         }
 
-        /* Status Update Notifications */
-        .status-update-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-            z-index: 10000;
-            max-width: 400px;
-            animation: slideInRight 0.5s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .notification-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .notification-content i {
-            color: #93c5fd;
-            font-size: 18px;
-        }
-
-        .notification-content span {
-            flex: 1;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .notification-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.3s ease;
-        }
-
-        .notification-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+        /* Removed automatic status update notification styles */
 
         /* Ticket Details Styling */
         .ticket-details {
@@ -1012,69 +951,12 @@
             const ticketsHTML = tickets.map(ticket => createTicketHTML(ticket)).join('');
             ticketsList.innerHTML = ticketsHTML;
             
-            // Check for status updates and show notifications
-            checkForStatusUpdates(tickets);
+            // Removed automatic status update checking
         }
 
-        // Check for status updates and show notifications
-        function checkForStatusUpdates(newTickets) {
-            // Get previously stored tickets for comparison
-            const storedTickets = localStorage.getItem('tickets') || '[]';
-            const previousTickets = JSON.parse(storedTickets);
-            
-            if (previousTickets.length === 0) {
-                // First time loading, just store current tickets
-                localStorage.setItem('tickets', JSON.stringify(newTickets));
-                return;
-            }
-            
-            // Check for status changes
-            const statusUpdates = [];
-            newTickets.forEach(newTicket => {
-                const oldTicket = previousTickets.find(t => t.id === newTicket.id);
-                if (oldTicket && oldTicket.status !== newTicket.status) {
-                    statusUpdates.push({
-                        ticketCode: newTicket.ticketCode || newTicket.id,
-                        oldStatus: oldTicket.status,
-                        newStatus: newTicket.status,
-                        issueType: newTicket.issueType || 'Unknown'
-                    });
-                }
-            });
-            
-            // Show notifications for status updates
-            if (statusUpdates.length > 0) {
-                showStatusUpdateNotifications(statusUpdates);
-            }
-            
-            // Update stored tickets
-            localStorage.setItem('tickets', JSON.stringify(newTickets));
-        }
+        // Removed automatic status update checking and notifications
 
-        // Show status update notifications
-        function showStatusUpdateNotifications(updates) {
-            updates.forEach(update => {
-                const notification = document.createElement('div');
-                notification.className = 'status-update-notification';
-                notification.innerHTML = `
-                    <div class="notification-content">
-                        <i class="fas fa-info-circle"></i>
-                        <span><strong>Ticket ${update.ticketCode}</strong> status changed from <strong>${update.oldStatus}</strong> to <strong>${update.newStatus}</strong></span>
-                        <button onclick="this.parentElement.parentElement.remove()" class="notification-close">&times;</button>
-                    </div>
-                `;
-                
-                // Add to page
-                document.body.appendChild(notification);
-                
-                // Auto-remove after 8 seconds
-                setTimeout(() => {
-                    if (notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 8000);
-            });
-        }
+        // Removed automatic status update notifications
 
         // View ticket status details
         function viewTicketStatus(ticketId) {
