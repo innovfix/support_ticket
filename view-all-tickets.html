@@ -1548,7 +1548,9 @@
                 return;
             }
             
+            console.log('Setting currentTicketIdForStatus to:', ticketId);
             currentTicketIdForStatus = ticketId;
+            console.log('currentTicketIdForStatus after setting:', currentTicketIdForStatus);
             
             // Get current ticket to show current status
             // Check if ticketId is numeric (ID) or string (ticket code)
@@ -1588,6 +1590,14 @@
             if (modal) {
                 modal.style.display = 'block';
                 console.log('Modal displayed successfully');
+                
+                // Debug: Check if form is visible
+                const form = document.getElementById('changeStatusForm');
+                const warning = document.getElementById('closedTicketWarning');
+                console.log('Form element:', form);
+                console.log('Warning element:', warning);
+                console.log('Form display style:', form ? form.style.display : 'N/A');
+                console.log('Warning display style:', warning ? warning.style.display : 'N/A');
             } else {
                 console.error('Status change modal not found!');
                 alert('Status change modal not found!');
@@ -1610,12 +1620,19 @@
             const newStatus = document.getElementById('newStatus').value;
             const statusDescription = document.getElementById('statusDescription').value.trim();
             
+            console.log('=== UPDATE TICKET STATUS DEBUG ===');
+            console.log('newStatus:', newStatus);
+            console.log('statusDescription:', statusDescription);
+            console.log('currentTicketIdForStatus:', currentTicketIdForStatus);
+            console.log('typeof currentTicketIdForStatus:', typeof currentTicketIdForStatus);
+            
             if (!newStatus) {
                 alert('Please select a status');
                 return;
             }
             
             if (!currentTicketIdForStatus) {
+                console.error('currentTicketIdForStatus is null/undefined!');
                 alert('No ticket selected');
                 return;
             }
