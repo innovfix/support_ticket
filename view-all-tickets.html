@@ -300,24 +300,29 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 9999;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(5px);
+            /* Ensure modal is always on top */
+            overflow-y: auto;
         }
 
         .modal-content {
             background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-            margin: 8% auto;
+            margin: 5% auto;
             padding: 0;
             border-radius: 12px;
-            width: 85%;
-            max-width: 400px;
+            width: 90%;
+            max-width: 500px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
             border: 1px solid #4b5563;
+            /* Ensure modal content is properly sized */
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -427,6 +432,9 @@
             justify-content: flex-end;
             padding: 16px 20px;
             border-top: 1px solid #4b5563;
+            /* Ensure buttons are always visible */
+            min-height: 60px;
+            align-items: center;
         }
 
         .cancel-btn {
@@ -453,11 +461,42 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            /* Ensure button is always visible */
+            min-width: 120px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .submit-btn:hover {
             background: linear-gradient(135deg, #059669 0%, #047857 100%);
             transform: translateY(-2px);
+        }
+
+        /* Ensure submit button is always visible and properly sized */
+        #editTicketModal .submit-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            color: white !important;
+            padding: 12px 24px !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            min-width: 140px !important;
+            height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 1rem !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+        }
+
+        #editTicketModal .submit-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4) !important;
         }
 
         /* Responsive Design */
@@ -592,11 +631,19 @@
                 padding: 12px 16px !important;
                 flex-direction: column !important;
                 gap: 8px !important;
+                /* Ensure form actions are visible on mobile */
+                min-height: 80px !important;
+                align-items: stretch !important;
             }
             
             .form-actions button {
                 width: 100% !important;
                 padding: 12px !important;
+                min-height: 44px !important;
+                /* Ensure buttons are visible */
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
             }
         }
         
@@ -3088,6 +3135,15 @@
             const modal = document.getElementById('editTicketModal');
             if (modal) {
                 modal.style.display = 'block';
+                console.log('Modal opened successfully');
+                console.log('Modal display style:', modal.style.display);
+                console.log('Modal z-index:', modal.style.zIndex);
+                // Ensure the form actions are visible
+                const formActions = modal.querySelector('.form-actions');
+                if (formActions) {
+                    console.log('Form actions found:', formActions);
+                    console.log('Form actions display:', formActions.style.display);
+                }
             } else {
                 alert('Edit modal not found!');
             }
