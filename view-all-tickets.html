@@ -1056,6 +1056,8 @@
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
+            padding: 0 20%;
+            box-sizing: border-box;
         }
 
         .status-filter {
@@ -1064,6 +1066,15 @@
             gap: 8px;
             align-items: flex-start;
             min-width: 200px;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .status-filter label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #f9fafb;
+            margin-bottom: 4px;
         }
 
         .status-filter select {
@@ -1076,6 +1087,31 @@
             min-width: 150px;
             width: 100%;
             min-height: 44px;
+            box-sizing: border-box;
+        }
+
+        .dashboard-actions .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+            min-height: 44px;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 160px;
+            max-width: 200px;
+            flex: 0 1 auto;
         }
 
         /* Fixed Container Layout */
@@ -1411,7 +1447,7 @@
         .dashboard-header-bar {
             background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(14px);
-            padding: 12px 16px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1419,25 +1455,28 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            /* Mobile header optimization */
             min-height: 60px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
         }
 
         .header-left {
             display: flex;
             align-items: center;
             gap: 12px;
-            /* Mobile header optimization */
             flex: 1;
             min-width: 0;
+            overflow: visible;
         }
 
         .header-right {
             display: flex;
             align-items: center;
             gap: 12px;
-            /* Mobile header optimization */
             flex-shrink: 0;
+            overflow: visible;
+            min-width: 0;
         }
 
         .app-icon-small {
@@ -1450,7 +1489,6 @@
             justify-content: center;
             color: white;
             font-size: 1.1rem;
-            /* Mobile icon optimization */
             flex-shrink: 0;
         }
 
@@ -1458,20 +1496,20 @@
             font-size: 1.1rem;
             font-weight: 600;
             color: #ffffff;
-            /* Mobile text optimization */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 150px;
         }
 
-        /* Mobile-optimized action buttons in header */
-        .action-btn {
+        /* Fixed Header Action Buttons - Full Visibility */
+        .dashboard-header-bar .action-btn {
             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
             border: 1px solid #6b7280;
             color: white;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
             text-decoration: none;
             display: inline-flex;
@@ -1479,38 +1517,33 @@
             gap: 8px;
             transition: all 0.3s ease;
             cursor: pointer;
-            /* Mobile button optimization */
-            min-height: 40px;
+            min-height: 44px;
             justify-content: center;
-            /* Mobile touch target improvement */
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: ellipsis;
+            min-width: 100px;
+            max-width: 120px;
         }
 
-        .action-btn:hover {
+        .dashboard-header-bar .action-btn:hover {
             background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
             border-color: #9ca3af;
             transform: translateY(-1px);
         }
 
-        .logout-btn {
+        .dashboard-header-bar .logout-btn {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             border: 1px solid #ef4444;
+            min-width: 100px;
+            max-width: 120px;
         }
 
-        .logout-btn:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            border-color: #dc2626;
-        }
-
-        /* Mobile-optimized dashboard container */
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 0 20px;
-            /* Mobile container optimization */
-            margin: 10px;
-            padding: 0 10px;
+        .dashboard-header-bar .logout-btn:hover {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            border-color: #f87171;
         }
 
         /* Mobile-optimized tickets section */
@@ -1731,6 +1764,25 @@
                 font-size: 1.8rem !important;
             }
             
+            /* Fixed Mobile Header - Full Button Visibility */
+            .dashboard-header-bar {
+                padding: 12px 16px !important;
+                overflow: visible !important;
+            }
+            
+            .header-right {
+                overflow: visible !important;
+                gap: 8px !important;
+            }
+            
+            .dashboard-header-bar .action-btn {
+                padding: 8px 12px !important;
+                font-size: 0.8rem !important;
+                min-width: 80px !important;
+                max-width: 100px !important;
+                overflow: visible !important;
+            }
+            
             /* Fixed Mobile Grid - No Overlapping */
             .tickets-grid {
                 grid-template-columns: 1fr !important;
@@ -1811,18 +1863,20 @@
                 margin-bottom: 12px !important;
             }
 
-            /* Fixed Mobile Dashboard Actions - No Overlapping */
+            /* Fixed Mobile Dashboard Actions - 20% Margins on Mobile */
             .dashboard-actions {
                 flex-direction: column !important;
                 gap: 16px !important;
                 align-items: stretch !important;
                 margin-bottom: 20px !important;
                 width: 100% !important;
+                padding: 0 20% !important;
             }
             
             .status-filter {
                 width: 100% !important;
                 order: 1 !important;
+                max-width: 100% !important;
             }
             
             .status-filter select {
@@ -1839,6 +1893,8 @@
                 min-height: 48px !important;
                 order: 2 !important;
                 margin: 0 !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
             }
 
             /* Fixed Mobile Modal - No Overlapping */
@@ -1891,6 +1947,18 @@
             
             .dashboard-header p {
                 font-size: 0.8rem !important;
+            }
+            
+            /* Fixed Small Mobile Header */
+            .dashboard-header-bar {
+                padding: 10px 12px !important;
+            }
+            
+            .dashboard-header-bar .action-btn {
+                padding: 6px 10px !important;
+                font-size: 0.75rem !important;
+                min-width: 70px !important;
+                max-width: 90px !important;
             }
             
             /* Fixed Small Mobile Grid */
@@ -1963,10 +2031,11 @@
                 font-size: 0.75rem !important;
             }
             
-            /* Fixed Small Mobile Dashboard Actions */
+            /* Fixed Small Mobile Dashboard Actions - 20% Margins */
             .dashboard-actions {
                 gap: 12px !important;
                 margin-bottom: 16px !important;
+                padding: 0 20% !important;
             }
             
             .status-filter label {
@@ -2021,6 +2090,7 @@
             .form-group input[type="text"] {
                 padding: 8px 10px !important;
                 font-size: 0.85rem !important;
+                min-height: 44px !important;
             }
             
             .form-actions {
@@ -2031,6 +2101,7 @@
             .form-actions button {
                 padding: 10px !important;
                 font-size: 0.85rem !important;
+                min-height: 44px !important;
             }
         }
         
