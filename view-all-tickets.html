@@ -958,77 +958,86 @@
 
         // Removed automatic status update notifications
 
-        // View ticket status details
-        function viewTicketStatus(ticketId) {
-            console.log('=== VIEW TICKET STATUS FUNCTION CALLED ===');
-            console.log('Ticket ID:', ticketId);
-            
-            // Find the ticket
-            const ticket = allTickets.find(t => t.id == ticketId || t.ticketCode == ticketId);
-            if (!ticket) {
-                alert('Ticket not found');
-                return;
-            }
-            
-            // Debug: Log all ticket fields to see what's available
-            console.log('=== TICKET DATA DEBUG ===');
-            console.log('Full ticket object:', ticket);
-            console.log('All available fields:', Object.keys(ticket));
-            console.log('statusDescription field:', ticket.statusDescription);
-            console.log('status_description field:', ticket.status_description);
-            console.log('status field:', ticket.status);
-            console.log('Raw ticket data:', JSON.stringify(ticket, null, 2));
-            console.log('=== END DEBUG ===');
-            
-            // Populate the status view modal
-            const statusModal = document.getElementById('viewStatusModal');
-            if (statusModal) {
-                // Set status description with better fallback logic
-                let statusDescription = 'No status description available';
-                if (ticket.statusDescription && ticket.statusDescription.trim() !== '') {
-                    statusDescription = ticket.statusDescription;
-                } else if (ticket.status_description && ticket.status_description.trim() !== '') {
-                    statusDescription = ticket.status_description;
-                } else if (ticket.statusHistory && ticket.statusHistory.length > 0) {
-                    // Try to get from status history if available
-                    const latestStatus = ticket.statusHistory[ticket.statusHistory.length - 1];
-                    if (latestStatus.description && latestStatus.description.trim() !== '') {
-                        statusDescription = latestStatus.description;
-                    }
-                }
-                
-                // If still no description, show status-specific default messages
-                if (statusDescription === 'No status description available') {
-                    switch (ticket.status) {
-                        case 'new':
-                            statusDescription = 'Ticket created and awaiting review';
-                            break;
-                        case 'in-progress':
-                            statusDescription = 'Ticket is being worked on by staff';
-                            break;
-                        case 'resolved':
-                            statusDescription = 'Issue has been resolved';
-                            break;
-                        case 'closed':
-                            statusDescription = 'Ticket has been closed';
-                            break;
-                        default:
-                            statusDescription = 'No additional status information available';
-                    }
-                }
-                
-                console.log('Final status description:', statusDescription);
-                document.getElementById('statusDescription').textContent = statusDescription;
-                
-                // Show the modal
-                statusModal.style.display = 'block';
-                
-                // Test database status for debugging
-                testDatabaseStatus(ticketId);
-            } else {
-                alert('Status view modal not found!');
-            }
-        }
+                 // View ticket status details
+         function viewTicketStatus(ticketId) {
+             console.log('=== VIEW TICKET STATUS FUNCTION CALLED ===');
+             console.log('Ticket ID:', ticketId);
+             
+             // Find the ticket
+             const ticket = allTickets.find(t => t.id == ticketId);
+             if (!ticket) {
+                 alert('Ticket not found');
+                 return;
+             }
+             
+             // Debug: Log all ticket fields to see what's available
+             console.log('=== TICKET DATA DEBUG ===');
+             console.log('Full ticket object:', ticket);
+             console.log('All available fields:', Object.keys(ticket));
+             console.log('statusDescription field:', ticket.statusDescription);
+             console.log('status_description field:', ticket.status_description);
+             console.log('status field:', ticket.status);
+             console.log('Raw ticket data:', JSON.stringify(ticket, null, 2));
+             console.log('=== END DEBUG ===');
+             
+                              // Populate the status view modal
+                 const statusModal = document.getElementById('viewStatusModal');
+                 if (statusModal) {
+                     // Set current status
+                     const statusText = ticket.status ? ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1) : 'Unknown';
+                     document.getElementById('currentStatus').textContent = statusText;
+                     
+                     // Set status description with better fallback logic
+                     let statusDescription = 'No status description available';
+                     if (ticket.statusDescription && ticket.statusDescription.trim() !== '') {
+                         statusDescription = ticket.statusDescription;
+                     } else if (ticket.status_description && ticket.status_description.trim() !== '') {
+                         statusDescription = ticket.status_description;
+                     } else if (ticket.statusHistory && ticket.statusHistory.length > 0) {
+                         // Try to get from status history if available
+                         const latestStatus = ticket.statusHistory[ticket.statusHistory.length - 1];
+                         if (latestStatus.description && latestStatus.description.trim() !== '') {
+                             statusDescription = latestStatus.description;
+                         }
+                     }
+                     
+                     // If still no description, show status-specific default messages
+                     if (statusDescription === 'No status description available') {
+                         switch (ticket.status) {
+                             case 'new':
+                                 statusDescription = 'Ticket created and awaiting review';
+                                 break;
+                             case 'in-progress':
+                                 statusDescription = 'Ticket is being worked on by staff';
+                                 break;
+                             case 'resolved':
+                                 statusDescription = 'Issue has been resolved';
+                                 break;
+                             case 'closed':
+                                 statusDescription = 'Ticket has been closed';
+                                 break;
+                             default:
+                                 statusDescription = 'No additional status information available';
+                         }
+                     }
+                     
+                     // Set last updated time
+                     const updatedTime = ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString() : 'Not available';
+                     document.getElementById('lastUpdated').textContent = updatedTime;
+                     
+                     // Set updated by
+                     const updatedBy = ticket.assignedByName || ticket.assignedBy || 'System';
+                     document.getElementById('updatedBy').textContent = updatedBy;
+                     
+                     console.log('Final status description:', statusDescription);
+                     document.getElementById('statusDescription').textContent = statusDescription;
+                     
+                     // Show the modal
+                     statusModal.style.display = 'block';
+                 } else {
+                     alert('Status view modal not found!');
+                 }
+         }
 
         // Close status view modal
         function closeViewStatusModal() {
@@ -1038,26 +1047,7 @@
             }
         }
 
-        // Test function to check database directly
-        async function testDatabaseStatus(ticketId) {
-            try {
-                console.log('=== TESTING DATABASE STATUS ===');
-                const response = await fetch(`api/tickets-list.php`);
-                if (response.ok) {
-                    const data = await response.json();
-                    const ticket = data.tickets.find(t => t.id == ticketId);
-                    if (ticket) {
-                        console.log('Database ticket data:', ticket);
-                        console.log('statusDescription from DB:', ticket.statusDescription);
-                        console.log('Raw status_description:', ticket.status_description);
-                    } else {
-                        console.log('Ticket not found in API response');
-                    }
-                }
-            } catch (error) {
-                console.error('Error testing database:', error);
-            }
-        }
+        
 
         // Update last updated time
         function updateLastUpdatedTime() {
@@ -1561,35 +1551,36 @@
                         return;
                     }
                     
-                    if (result.success) {
-                        console.log('Status update successful!');
-                        alert('Ticket status updated successfully!');
-                        
-                        // Clear the variable only after successful update
-                        const ticketIdToClear = currentTicketIdForStatus;
-                        currentTicketIdForStatus = null;
-                        console.log('Cleared currentTicketIdForStatus after successful update');
-                        
-                        closeStatusModal();
-                        
-                        // Force refresh tickets list
-                        console.log('Refreshing tickets list...');
-                        await loadTickets();
-                        console.log('Tickets list refreshed');
-                        
-                                                 // Additional verification - check if tickets were actually updated
-                         setTimeout(() => {
-                             console.log('=== VERIFICATION DEBUG ===');
-                             console.log('Current allTickets after refresh:', allTickets);
-                             const updatedTicket = allTickets.find(t => t.id == ticketIdToClear);
-                             if (updatedTicket) {
-                                 console.log('Updated ticket found:', updatedTicket);
-                                 console.log('New status:', updatedTicket.status);
-                             } else {
-                                 console.log('Updated ticket not found in list');
-                             }
-                         }, 1000);
-                    } else {
+                                             if (result.success) {
+                             console.log('Status update successful!');
+                             alert('Ticket status updated successfully!');
+                             
+                             // Clear the variable only after successful update
+                             const ticketIdToClear = currentTicketIdForStatus;
+                             currentTicketIdForStatus = null;
+                             console.log('Cleared currentTicketIdForStatus after successful update');
+                             
+                             closeStatusModal();
+                             
+                             // Force refresh tickets list
+                             console.log('Refreshing tickets list...');
+                             await loadTickets();
+                             console.log('Tickets list refreshed');
+                             
+                             // Additional verification - check if tickets were actually updated
+                             setTimeout(() => {
+                                 console.log('=== VERIFICATION DEBUG ===');
+                                 console.log('Current allTickets after refresh:', allTickets);
+                                 const updatedTicket = allTickets.find(t => t.id == ticketIdToClear);
+                                 if (updatedTicket) {
+                                     console.log('Updated ticket found:', updatedTicket);
+                                     console.log('New status:', updatedTicket.status);
+                                     console.log('New status description:', updatedTicket.statusDescription);
+                                 } else {
+                                     console.log('Updated ticket not found in list');
+                                 }
+                             }, 1000);
+                         } else {
                         console.error('API returned success: false');
                         console.error('Error message:', result.error);
                         alert('Failed to update status: ' + (result.error || 'Unknown error'));
@@ -1698,24 +1689,33 @@
         </div>
     </div>
 
-    <!-- Status View Modal -->
-    <div id="viewStatusModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-info-circle"></i> Ticket Status</h2>
-                <span class="close" onclick="closeViewStatusModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="ticket-details">
-                    <div class="detail-row">
-                        <strong>Status description (optional):</strong> <span id="statusDescription"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button onclick="closeViewStatusModal()" class="action-btn">Close</button>
-            </div>
-        </div>
-    </div>
+         <!-- Status View Modal -->
+     <div id="viewStatusModal" class="modal">
+         <div class="modal-content">
+             <div class="modal-header">
+                 <h2><i class="fas fa-info-circle"></i> Ticket Status Details</h2>
+                 <span class="close" onclick="closeViewStatusModal()">&times;</span>
+             </div>
+             <div class="modal-body">
+                 <div class="ticket-details">
+                     <div class="detail-row">
+                         <strong>Current Status:</strong> <span id="currentStatus"></span>
+                     </div>
+                     <div class="detail-row">
+                         <strong>Status Description:</strong> <span id="statusDescription"></span>
+                     </div>
+                     <div class="detail-row">
+                         <strong>Last Updated:</strong> <span id="lastUpdated"></span>
+                     </div>
+                     <div class="detail-row">
+                         <strong>Updated By:</strong> <span id="updatedBy"></span>
+                     </div>
+                 </div>
+             </div>
+             <div class="form-actions">
+                 <button onclick="closeViewStatusModal()" class="action-btn">Close</button>
+             </div>
+         </div>
+     </div>
 </body>
 </html>
