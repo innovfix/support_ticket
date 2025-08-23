@@ -1430,6 +1430,7 @@
                 return;
             }
             
+            // Store the ticket ID BEFORE opening the modal
             console.log('Setting currentTicketIdForStatus to:', ticketId);
             currentTicketIdForStatus = ticketId;
             console.log('currentTicketIdForStatus after setting:', currentTicketIdForStatus);
@@ -1472,6 +1473,7 @@
             if (modal) {
                 modal.style.display = 'block';
                 console.log('Modal displayed successfully');
+                console.log('currentTicketIdForStatus after modal display:', currentTicketIdForStatus);
                 
                 // Debug: Check if form is visible
                 const form = document.getElementById('changeStatusForm');
@@ -1494,7 +1496,8 @@
                 document.getElementById('statusDescription').value = '';
                 
                 modal.style.display = 'none';
-                currentTicketIdForStatus = null;
+                // Don't clear currentTicketIdForStatus here - it should persist until status is updated
+                console.log('Modal closed, currentTicketIdForStatus remains:', currentTicketIdForStatus);
             }
         }
 
@@ -1507,6 +1510,10 @@
             console.log('statusDescription:', statusDescription);
             console.log('currentTicketIdForStatus:', currentTicketIdForStatus);
             console.log('typeof currentTicketIdForStatus:', typeof currentTicketIdForStatus);
+            console.log('currentTicketIdForStatus value:', currentTicketIdForStatus);
+            console.log('currentTicketIdForStatus === null:', currentTicketIdForStatus === null);
+            console.log('currentTicketIdForStatus === undefined:', currentTicketIdForStatus === undefined);
+            console.log('currentTicketIdForStatus === "":', currentTicketIdForStatus === "");
             
             if (!newStatus) {
                 alert('Please select a status');
@@ -1515,7 +1522,9 @@
             
             if (!currentTicketIdForStatus) {
                 console.error('currentTicketIdForStatus is null/undefined!');
-                alert('No ticket selected');
+                console.error('This should not happen - the variable was set in changeTicketStatus');
+                console.error('Current state of allTickets:', allTickets);
+                alert('No ticket selected. Please try again.');
                 return;
             }
             
@@ -1571,6 +1580,12 @@
                     if (result.success) {
                         console.log('Status update successful!');
                         alert('Ticket status updated successfully!');
+                        
+                        // Clear the variable only after successful update
+                        const ticketIdToClear = currentTicketIdForStatus;
+                        currentTicketIdForStatus = null;
+                        console.log('Cleared currentTicketIdForStatus after successful update');
+                        
                         closeStatusModal();
                         
                         // Force refresh tickets list
@@ -1583,8 +1598,8 @@
                             console.log('=== VERIFICATION DEBUG ===');
                             console.log('Current allTickets after refresh:', allTickets);
                             const updatedTicket = allTickets.find(t => 
-                                (t.id == currentTicketIdForStatus) || 
-                                (t.ticketCode == currentTicketIdForStatus)
+                                (t.id == ticketIdToClear) || 
+                                (t.ticketCode == ticketIdToClear)
                             );
                             if (updatedTicket) {
                                 console.log('Updated ticket found:', updatedTicket);
