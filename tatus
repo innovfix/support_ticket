@@ -296,3 +296,161 @@
  TAB ...................................... Complete filename & cycle.
  SHIFT-TAB ...................... ESC-TAB   Complete filename & reverse cycle.
  ctrl-L ................................... Complete filename, list all.
+[1mdiff --git a/test-db-connection.php b/test-db-connection.php[m
+[1mindex 8227b32..39b1019 100644[m
+[1m--- a/test-db-connection.php[m
+[1m+++ b/test-db-connection.php[m
+[36m@@ -1,110 +1,56 @@[m
+ <?php[m
+[31m-/**[m
+[31m- * Database Connection Test - Production Debugging[m
+[31m- * This file helps debug database connection issues on the live site[m
+[31m- */[m
+[31m-[m
+[31m-// Enable error reporting for debugging[m
+[31m-error_reporting(E_ALL);[m
+[31m-ini_set('display_errors', 1);[m
+[31m-ini_set('log_errors', 1);[m
+[31m-[m
+[31m-echo "<h1>Database Connection Test</h1>";[m
+[31m-echo "<p>Testing database connection for production...</p>";[m
+[31m-[m
+[32m+[m[32m// Test database connection and list available databases[m
+ try {[m
+[31m-    // Test 1: Check if config.php exists and can be loaded[m
+[31m-    echo "<h2>Test 1: Configuration File</h2>";[m
+[32m+[m[32m    // Try to connect to MySQL without specifying a database[m
+[32m+[m[32m    $pdo = new PDO('mysql:host=localhost;port=3306;charset=utf8mb4', 'root', '', [[m
+[32m+[m[32m        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,[m
+[32m+[m[32m        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,[m
+[32m+[m[32m    ]);[m
+     [m
+[31m-    $configPaths = [[m
+[31m-        __DIR__ . '/config.php',[m
+[31m-        __DIR__ . '/../config.php',[m
+[31m-        __DIR__ . '/../../config.php',[m
+[31m-    ];[m
+[32m+[m[32m    echo "Connected to MySQL successfully!\n\n";[m
+     [m
+[31m-    $configFound = false;[m
+[31m-    foreach ($configPaths as $path) {[m
+[31m-        if (file_exists($path)) {[m
+[31m-            echo "<p style='color: green;'>✓ Config found at: $path</p>";[m
+[31m-            $configFound = true;[m
+[31m-            break;[m
+[31m-        } else {[m
+[31m-            echo "<p style='color: red;'>✗ Config not found at: $path</p>";[m
+[31m-        }[m
+[31m-    }[m
+[32m+[m[32m    // List all databases[m
+[32m+[m[32m    $stmt = $pdo->query('SHOW DATABASES');[m
+[32m+[m[32m    $databases = $stmt->fetchAll();[m
+     [m
+[31m-    if (!$configFound) {[m
+[31m-        throw new Exception("Configuration file not found in any expected location");[m
+[32m+[m[32m    echo "Available databases:\n";[m
+[32m+[m[32m    foreach ($databases as $db) {[m
+[32m+[m[32m        echo "- " . $db['Database'] . "\n";[m
+     }[m
+     [m
+[31m-    // Test 2: Load configuration[m
+[31m-    echo "<h2>Test 2: Load Configuration</h2>";[m
+[31m-    require_once $path;[m
+[31m-    echo "<p style='color: green;'>✓ Configuration loaded successfully</p>";[m
+[31m-    [m
+[31m-    // Test 3: Check if database constants are defined[m
+[31m-    echo "<h2>Test 3: Database Constants</h2>";[m
+[31m-    $requiredConstants = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_PORT'];[m
+[31m-    foreach ($requiredConstants as $constant) {[m
+[31m-        if (defined($constant)) {[m
+[31m-            echo "<p style='color: green;'>✓ $constant: " . constant($constant) . "</p>";[m
+[31m-        } else {[m
+[31m-            echo "<p style='color: red;'>✗ $constant: NOT DEFINED</p>";[m
+[32m+[m[32m    // Try to connect to specific databases[m
+[32m+[m[32m    $testDatabases = ['hima', 'query_desk', 'hima_support'];[m
+[32m+[m[41m    [m
+[32m+[m[32m    echo "\nTesting specific database connections:\n";[m
+[32m+[m[32m    foreach ($testDatabases as $dbName) {[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            $testPdo = new PDO("mysql:host=localhost;port=3306;dbname=$dbName;charset=utf8mb4", 'root', '', [[m
+[32m+[m[32m                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,[m
+[32m+[m[32m            ]);[m
+[32m+[m[32m            echo "✓ Successfully connected to '$dbName'\n";[m
+[32m+[m[41m            [m
+[32m+[m[32m            // Check if tickets table exists[m
+[32m+[m[32m            $stmt = $testPdo->query("SHOW TABLES LIKE 'tickets'");[m
+[32m+[m[32m            if ($stmt->rowCount() > 0) {[m
+[32m+[m[32m                echo "  ✓ 'tickets' table exists\n";[m
+[32m+[m[41m                [m
+[32m+[m[32m                // Check table structure[m
+[32m+[m[32m                $stmt = $testPdo->query("DESCRIBE tickets");[m
+[32m+[m[32m                $columns = $stmt->fetchAll();[m
+[32m+[m[32m                echo "  Table structure:\n";[m
+[32m+[m[32m                foreach ($columns as $column) {[m
+[32m+[m[32m                    echo "    - {$column['Field']}: {$column['Type']} {$column['Null']} {$column['Key']} {$column['Default']}\n";[m
+[32m+[m[32m                }[m
+[32m+[m[32m            } else {[m
+[32m+[m[32m                echo "  ✗ 'tickets' table does not exist\n";[m
+[32m+[m[32m            }[m
+[32m+[m[41m            [m
+[32m+[m[32m        } catch (Exception $e) {[m
+[32m+[m[32m            echo "✗ Failed to connect to '$dbName': " . $e->getMessage() . "\n";[m
+         }[m
+     }[m
+     [m
+[31m-    // Test 4: Check if get_hosting_pdo function exists[m
+[31m-    echo "<h2>Test 4: Database Function</h2>";[m
+[31m-    if (function_exists('get_hosting_pdo')) {[m
+[31m-        echo "<p style='color: green;'>✓ get_hosting_pdo function exists</p>";[m
+[31m-    } else {[m
+[31m-        throw new Exception("get_hosting_pdo function not found");[m
+[31m-    }[m
+[31m-    [m
+[31m-    // Test 5: Test database connection[m
+[31m-    echo "<h2>Test 5: Database Connection</h2>";[m
+[31m-    $pdo = get_hosting_pdo();[m
+[31m-    [m
+[31m-    if ($pdo instanceof PDO) {[m
+[31m-        echo "<p style='color: green;'>✓ Database connection successful</p>";[m
+[31m-        [m
+[31m-        // Test 6: Test a simple query[m
+[31m-        echo "<h2>Test 6: Database Query</h2>";[m
+[31m-        $stmt = $pdo->query("SELECT COUNT(*) as count FROM tickets");[m
+[31m-        $result = $stmt->fetch();[m
+[31m-        echo "<p style='color: green;'>✓ Query successful: " . $result['count'] . " tickets found</p>";[m
+[31m-        [m
+[31m-        // Test 7: Check table structure[m
+[31m-        echo "<h2>Test 7: Table Structure</h2>";[m
+[31m-        $stmt = $pdo->query("DESCRIBE tickets");[m
+[31m-        $columns = $stmt->fetchAll();[m
+[31m-        echo "<p style='color: green;'>✓ Tickets table has " . count($columns) . " columns:</p>";[m
+[31m-        echo "<ul>";[m
+[31m-        foreach ($columns as $column) {[m
+[31m-            echo "<li>{$column['Field']} - {$column['Type']}</li>";[m
+[31m-        }[m
+[31m-        echo "</ul>";[m
+[31m-        [m
+[31m-    } else {[m
+[31m-        throw new Exception("Database connection failed - PDO object not returned");[m
+[31m-    }[m
+[31m-    [m
+[31m-    echo "<h2 style='color: green;'>🎉 ALL TESTS PASSED! Database is working correctly.</h2>";[m
+[31m-    [m
+ } catch (Exception $e) {[m
+[31m-    echo "<h2 style='color: red;'>❌ ERROR: " . $e->getMessage() . "</h2>";[m
+[31m-    echo "<p><strong>Error Details:</strong></p>";[m
+[31m-    echo "<pre>" . $e->getTraceAsString() . "</pre>";[m
+[31m-    [m
+[31m-    // Show PHP info for debugging[m
+[31m-    echo "<h2>PHP Information</h2>";[m
+[31m-    echo "<p><strong>PHP Version:</strong> " . phpversion() . "</p>";[m
+[31m-    echo "<p><strong>PDO Available:</strong> " . (extension_loaded('pdo') ? 'Yes' : 'No') . "</p>";[m
+[31m-    echo "<p><strong>PDO MySQL Available:</strong> " . (extension_loaded('pdo_mysql') ? 'Yes' : 'No') . "</p>";[m
+[31m-    echo "<p><strong>Current Directory:</strong> " . __DIR__ . "</p>";[m
+[31m-    echo "<p><strong>Document Root:</strong> " . $_SERVER['DOCUMENT_ROOT'] . "</p>";[m
+[32m+[m[32m    echo "Failed to connect to MySQL: " . $e->getMessage() . "\n";[m
+ }[m
+[31m-[m
+[31m-echo "<hr>";[m
+[31m-echo "<p><em>This file should be deleted after debugging is complete.</em></p>";[m
+ ?>[m

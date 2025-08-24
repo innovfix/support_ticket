@@ -2885,7 +2885,7 @@
                      document.getElementById('updatedBy').textContent = updatedBy;
                      
                      console.log('Final status description to display:', statusDescription);
-                     document.getElementById('statusDescription').textContent = statusDescription;
+                     document.getElementById('viewStatusDescription').textContent = statusDescription;
                      
                      // Show the modal
                      statusModal.style.display = 'block';
@@ -2992,6 +2992,12 @@
                                 <div class="meta-item">
                                     <i class="fas fa-user-check"></i>
                                     <span>Assigned to: ${ticket.assignedToName}</span>
+                                </div>
+                                ` : ''}
+                                ${ticket.statusDescription && ticket.statusDescription.trim() !== '' ? `
+                                <div class="meta-item">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Status: ${ticket.statusDescription}</span>
                                 </div>
                                 ` : ''}
                             </div>
@@ -3682,7 +3688,7 @@ ${ticket.statusDescription ? `Status Description: ${ticket.statusDescription}` :
                          <strong>Current Status:</strong> <span id="currentStatus"></span>
                      </div>
                      <div class="detail-row">
-                         <strong>Status Description:</strong> <span id="statusDescription"></span>
+                         <strong>Status Description:</strong> <span id="viewStatusDescription"></span>
                      </div>
                      <div class="detail-row">
                          <strong>Last Updated:</strong> <span id="lastUpdated"></span>
