@@ -25,7 +25,6 @@ try {
         t.status_description AS statusDescription,
         COALESCE(t.assigned_to_name, s.name) AS assignedStaffName,
         t.screenshot_path AS screenshot,
-        t.screenshots_count AS screenshotsCount,
         t.created_by AS createdBy,
         t.created_at AS createdAt,
         t.updated_at AS updatedAt
@@ -43,49 +42,24 @@ try {
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
     
-    // Fetch screenshots for each ticket
-    $tickets = [];
-    foreach ($rows as $row) {
-        $ticket = $row;
-        
-        // Get all screenshots for this ticket
-        try {
-            $screenshotStmt = $pdo->prepare('SELECT 
-                screenshot_path, original_filename, file_size, uploaded_at 
-                FROM ticket_screenshots 
-                WHERE ticket_id = ? 
-                ORDER BY uploaded_at ASC');
-            $screenshotStmt->execute([$row['id']]);
-            $screenshots = $screenshotStmt->fetchAll();
-            
-            if (count($screenshots) > 0) {
-                $ticket['screenshots'] = $screenshots;
-                $ticket['screenshotsCount'] = count($screenshots);
-            } else {
-                // Fallback to old single screenshot if no multiple screenshots found
-                $ticket['screenshots'] = $row['screenshot'] ? [['screenshot_path' => $row['screenshot']]] : [];
-                $ticket['screenshotsCount'] = $row['screenshot'] ? 1 : 0;
-            }
-        } catch (Throwable $e) {
-            // If ticket_screenshots table doesn't exist, fallback to old single screenshot
-            $ticket['screenshots'] = $row['screenshot'] ? [['screenshot_path' => $row['screenshot']]] : [];
-            $ticket['screenshotsCount'] = $row['screenshot'] ? 1 : 0;
-        }
-        
-        $tickets[] = $ticket;
-    }
+    echo json_encode(['ok' => true, 'tickets' => $rows]);
     
-    json_response([
-        'ok' => true,
-        'tickets' => $tickets,
-        'count' => count($tickets)
+} catch (Exception $e) {
+    // Log the error for debugging
+    error_log("Tickets list API error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    
+    // Always return JSON error response
+    http_response_code(500);
+    echo json_encode([
+        'ok' => false, 
+        'error' => 'Failed to load tickets: ' . $e->getMessage(),
+        'debug' => [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]
     ]);
-    
-} catch (Throwable $e) {
-    json_response([
-        'ok' => false,
-        'error' => 'Failed to fetch tickets: ' . $e->getMessage()
-    ], 500);
 }
 ?>
 

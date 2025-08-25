@@ -1553,22 +1553,7 @@ function displayManagerTickets() {
                 <div class="ticket-description">
                     <p><strong>Issue Type:</strong> ${ticket.issueType}</p>
                     <p><strong>Description:</strong> ${ticket.issueDescription}</p>
-                    ${ticket.screenshots && ticket.screenshots.length > 0 ? `
-                        <div class="screenshots-section">
-                            <p><strong>Screenshots (${ticket.screenshots.length}):</strong></p>
-                            <div class="screenshots-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-top: 10px;">
-                                ${ticket.screenshots.map((screenshot, index) => `
-                                    <div class="screenshot-thumbnail" style="position: relative; text-align: center;">
-                                        <img src="${screenshot.screenshot_path}" 
-                                             alt="Screenshot ${index + 1}" 
-                                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid rgba(255, 255, 255, 0.2); cursor: pointer;"
-                                             onclick="viewScreenshot('${screenshot.screenshot_path}', '${screenshot.original_filename || 'Screenshot ' + (index + 1)}', ${screenshot.file_size || 0})">
-                                        <div style="font-size: 0.7rem; color: #aaa; margin-top: 4px;">${index + 1}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ticket.screenshot ? `<p><strong>Screenshot:</strong> <a href="#" onclick="viewScreenshot('${ticket.screenshot}')">View Image</a></p>` : ''}
+                    ${ticket.screenshot ? `<p><strong>Screenshot:</strong> <a href="#" onclick="viewScreenshot('${ticket.screenshot}')">View Image</a></p>` : ''}
                 </div>
                 
                          <!-- Simplified Status Section -->
@@ -2035,34 +2020,19 @@ function updateTicketStatus() {
     });
 }
 
-function viewScreenshot(screenshotPath, filename = 'Screenshot', fileSize = 0) {
+function viewScreenshot(screenshotData) {
     // Create a modal to display the screenshot
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
-    
-    // Format file size
-    const formatFileSize = (bytes) => {
-        if (bytes === 0) return 'Unknown size';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-    
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 90%; max-height: 90%;">
+        <div class="modal-content" style="max-width: 80%; max-height: 80%;">
             <div class="modal-header">
-                <h2><i class="fas fa-image"></i> ${filename}</h2>
+                <h2>Screenshot</h2>
                 <span class="close" onclick="this.parentElement.parentElement.parentElement.remove()">&times;</span>
             </div>
             <div style="text-align: center; padding: 20px;">
-                <img src="${screenshotPath}" alt="${filename}" style="max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff;">
-                    <p style="margin: 5px 0;"><strong>Filename:</strong> ${filename}</p>
-                    <p style="margin: 5px 0;"><strong>Size:</strong> ${formatFileSize(fileSize)}</p>
-                    <p style="margin: 5px 0;"><strong>Path:</strong> ${screenshotPath}</p>
-                </div>
+                <img src="${screenshotData}" alt="Screenshot" style="max-width: 100%; max-height: 400px; border-radius: 8px;">
             </div>
         </div>
     `;

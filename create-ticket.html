@@ -164,26 +164,24 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 20px;">
-                    <label for="screenshots" style="display: block; margin-bottom: 8px; color: #fff; font-weight: 500;">Screenshots (Optional)</label>
+                    <label for="screenshot" style="display: block; margin-bottom: 8px; color: #fff; font-weight: 500;">Screenshot (Optional)</label>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <button type="button" class="screenshot-btn" onclick="document.getElementById('screenshots').click()" 
+                        <button type="button" class="screenshot-btn" onclick="document.getElementById('screenshot').click()" 
                                 style="background: rgba(59, 130, 246, 0.8); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; min-width: 140px; justify-content: center; align-self: flex-start; min-height: 44px;">
-                            <i class="fas fa-camera"></i> Choose Screenshots
+                            <i class="fas fa-camera"></i> Choose Screenshot
                         </button>
-                        <span style="color: #aaa; font-size: 0.8rem;">Upload multiple images to help describe the issue (Max 5 images, 5MB each)</span>
+                        <span style="color: #aaa; font-size: 0.8rem;">Upload an image to help describe the issue</span>
                     </div>
-                    <input type="file" id="screenshots" name="screenshots[]" accept="image/*" multiple style="display: none;">
-                    
-                    <!-- Multiple Screenshots Preview -->
-                    <div id="screenshotsPreview" style="margin-top: 15px; display: none;">
-                        <div id="screenshotsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                            <!-- Screenshot previews will be added here -->
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span id="screenshotsCount" style="color: #fff; font-size: 0.9rem; font-weight: 500;"></span>
-                            <button type="button" onclick="clearAllScreenshots()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; min-height: 36px;">
-                                <i class="fas fa-trash"></i> Clear All
-                            </button>
+                    <input type="file" id="screenshot" name="screenshot" accept="image/*" style="display: none;">
+                    <div id="screenshotPreview" style="margin-top: 15px; display: none; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img id="previewImage" style="max-width: 80px; max-height: 80px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.2); object-fit: cover;">
+                            <div>
+                                <p style="margin: 0 0 8px 0; color: #fff; font-size: 0.9rem;">Screenshot uploaded successfully</p>
+                                <button type="button" onclick="removeScreenshot()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; min-height: 36px;">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -311,93 +309,22 @@
 
 
 
-                // Handle multiple screenshots preview
-        document.getElementById('screenshots').addEventListener('change', function(e) {
-            const files = e.target.files;
-            const previewsGrid = document.getElementById('screenshotsGrid');
-            const previewsCount = document.getElementById('screenshotsCount');
-            const maxFiles = 5; // Maximum 5 screenshots
-
-            // Clear existing previews
-            previewsGrid.innerHTML = '';
-            
-            if (files.length > 0) {
-                // Limit to maximum 5 files
-                const filesToProcess = files.length > maxFiles ? Array.from(files).slice(0, maxFiles) : Array.from(files);
-                
-                filesToProcess.forEach((file, index) => {
-                    if (file && file.type.startsWith('image/')) {
-                        // Validate file size (5MB limit)
-                        if (file.size > 5 * 1024 * 1024) {
-                            alert(`File "${file.name}" is too large. Maximum size is 5MB.`);
-                            return;
-                        }
-                        
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const previewContainer = document.createElement('div');
-                            previewContainer.style.position = 'relative';
-                            previewContainer.style.display = 'flex';
-                            previewContainer.style.flexDirection = 'column';
-                            previewContainer.style.alignItems = 'center';
-                            previewContainer.style.gap = '8px';
-                            
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.style.width = '100px';
-                            img.style.height = '100px';
-                            img.style.borderRadius = '8px';
-                            img.style.border = '2px solid rgba(255, 255, 255, 0.2)';
-                            img.style.objectFit = 'cover';
-                            
-                            const removeBtn = document.createElement('button');
-                            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                            removeBtn.style.position = 'absolute';
-                            removeBtn.style.top = '-8px';
-                            removeBtn.style.right = '-8px';
-                            removeBtn.style.background = '#ef4444';
-                            removeBtn.style.color = 'white';
-                            removeBtn.style.border = 'none';
-                            removeBtn.style.borderRadius = '50%';
-                            removeBtn.style.width = '24px';
-                            removeBtn.style.height = '24px';
-                            removeBtn.style.cursor = 'pointer';
-                            removeBtn.style.fontSize = '12px';
-                            removeBtn.onclick = function() {
-                                previewContainer.remove();
-                                updateScreenshotsCount();
-                            };
-                            
-                            previewContainer.appendChild(img);
-                            previewContainer.appendChild(removeBtn);
-                            previewsGrid.appendChild(previewContainer);
-                            
-                            updateScreenshotsCount();
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-                
-                document.getElementById('screenshotsPreview').style.display = 'block';
+                        // Handle screenshot preview
+        document.getElementById('screenshot').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('screenshotPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
             }
         });
 
-        function updateScreenshotsCount() {
-            const previewsGrid = document.getElementById('screenshotsGrid');
-            const previewsCount = document.getElementById('screenshotsCount');
-            const count = previewsGrid.children.length;
-            previewsCount.textContent = count + ' screenshot(s) uploaded';
-            
-            if (count === 0) {
-                document.getElementById('screenshotsPreview').style.display = 'none';
-            }
-        }
-
-                function clearAllScreenshots() {
-            const previewsGrid = document.getElementById('screenshotsGrid');
-            previewsGrid.innerHTML = ''; // Clear all images
-            document.getElementById('screenshots').value = ''; // Clear file input
-            updateScreenshotsCount();
+        function removeScreenshot() {
+            document.getElementById('screenshot').value = '';
+            document.getElementById('screenshotPreview').style.display = 'none';
         }
 
         // Submit ticket form
@@ -420,11 +347,9 @@
             formData.append('issueDescription', document.getElementById('issueDescription').value);
             formData.append('createdBy', currentStaffId || 'Staff');
             
-            const files = document.getElementById('screenshots').files;
-            if (files && files.length > 0) {
-                for (let i = 0; i < files.length; i++) {
-                    formData.append('screenshots[]', files[i]);
-                }
+            const screenshotFile = document.getElementById('screenshot').files[0];
+            if (screenshotFile) {
+                formData.append('screenshot', screenshotFile);
             }
 
             try {
@@ -468,9 +393,7 @@
             // Reset form and hide screenshot preview
             document.getElementById('createTicketForm').reset();
             document.getElementById('screenshotsPreview').style.display = 'none';
-            document.getElementById('screenshotsGrid').innerHTML = ''; // Clear previews
-            document.getElementById('screenshotsCount').textContent = '0';
-            document.getElementById('screenshots').value = ''; // Clear file input
+            document.getElementById('screenshotPreview').style.display = 'none';
         }
 
         function closeErrorModal() {
