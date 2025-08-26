@@ -1394,12 +1394,12 @@ function initializeManagerDashboard() {
         displayManagerTickets();
         updateManagerDashboardCounts();
         
-        // Set up periodic refresh
-        setInterval(() => {
-            displayManagerTickets();
-            updateManagerDashboardCounts();
-            updateManagerOnlineStatus(); // Update online status
-        }, 5000); // Refresh every 5 seconds
+        // Auto-refresh disabled - manual refresh only
+        // setInterval(() => {
+        //     displayManagerTickets();
+        //     updateManagerDashboardCounts();
+        //     updateManagerOnlineStatus(); // Update online status
+        // }, 5000); // Refresh every 5 seconds
         
     } catch (error) {
         console.error('Error initializing manager dashboard:', error);
@@ -1493,12 +1493,10 @@ function displayManagerTickets() {
             const status = statusFilterEl && statusFilterEl.value ? statusFilterEl.value : 'all';
             // Optional filters from dashboard page
             const fromDate = document.getElementById('fromDateFilter')?.value || '';
-            const toDate = document.getElementById('toDateFilter')?.value || '';
             const code = (document.getElementById('codeFilter')?.value || '').trim();
             const params = new URLSearchParams();
             if (status && status !== 'all') params.set('status', status);
             if (fromDate) params.set('fromDate', fromDate);
-            if (toDate) params.set('toDate', toDate);
             if (code) params.set('code', code);
             const q = params.toString();
             const url = q ? `api/tickets-list.php?${q}` : 'api/tickets-list.php';
@@ -1745,10 +1743,8 @@ function resetManagerFilter() {
     const statusFilter = document.getElementById('statusFilter');
     if (statusFilter) statusFilter.value = 'all';
     const fromDate = document.getElementById('fromDateFilter');
-    const toDate = document.getElementById('toDateFilter');
     const code = document.getElementById('codeFilter');
     if (fromDate) fromDate.value = '';
-    if (toDate) toDate.value = '';
     if (code) code.value = '';
     localStorage.removeItem('managerStatusFilter');
     displayManagerTickets();

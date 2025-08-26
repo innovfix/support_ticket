@@ -192,21 +192,20 @@
             <div class="section-header">
                 <h3><i class="fas fa-ticket-alt"></i> All Staff Tickets</h3>
                 <div class="ticket-filters">
-                    <select id="statusFilter" onchange="filterManagerTickets()">
+                    <select id="statusFilter" onchange="filterManagerTickets()" class="modern-filter-select">
                         <option value="all">All Status</option>
                         <option value="new">New</option>
                         <option value="in-progress">In Progress</option>
                         <option value="resolved">Resolved</option>
                         <option value="closed">Closed</option>
                     </select>
-                    <input type="date" id="fromDateFilter" title="From date">
-                    <input type="date" id="toDateFilter" title="To date">
-                    <input type="text" id="codeFilter" placeholder="Search TKT code" title="Ticket code">
-                    <button class="reset-filter-btn" onclick="filterManagerTickets()" title="Apply filters">
-                        <i class="fas fa-filter"></i>
+                    <input type="date" id="fromDateFilter" title="From date" class="modern-filter-input">
+                    <input type="text" id="codeFilter" placeholder="Search TKT code" title="Ticket code" class="modern-filter-input">
+                    <button class="modern-filter-btn primary" onclick="filterManagerTickets()" title="Apply filters">
+                        <i class="fas fa-filter"></i> Filter
                     </button>
-                    <button class="reset-filter-btn" onclick="resetManagerFilter()" title="Reset filter to show all tickets">
-                        <i class="fas fa-undo"></i>
+                    <button class="modern-filter-btn secondary" onclick="resetManagerFilter()" title="Reset filter to show all tickets">
+                        <i class="fas fa-undo"></i> Reset
                     </button>
                 </div>
             </div>

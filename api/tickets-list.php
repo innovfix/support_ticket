@@ -11,7 +11,6 @@ try {
     
     $status = isset($_GET['status']) ? trim((string)$_GET['status']) : null; // all by default
     $fromDate = isset($_GET['fromDate']) ? trim((string)$_GET['fromDate']) : null; // YYYY-MM-DD
-    $toDate = isset($_GET['toDate']) ? trim((string)$_GET['toDate']) : null;   // YYYY-MM-DD
     $code = isset($_GET['code']) ? trim((string)$_GET['code']) : null;         // TKT-xxxx or id
     
     $sql = 'SELECT 
@@ -40,18 +39,12 @@ try {
         $where[] = 't.status = ?';
         $params[] = $status;
     }
-    // Date range filter on created_at
+    // Date filter on created_at (from date only)
     if ($fromDate !== null && $fromDate !== '') {
         // validate basic format YYYY-MM-DD
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromDate)) {
             $where[] = 'DATE(t.created_at) >= ?';
             $params[] = $fromDate;
-        }
-    }
-    if ($toDate !== null && $toDate !== '') {
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $toDate)) {
-            $where[] = 'DATE(t.created_at) <= ?';
-            $params[] = $toDate;
         }
     }
     // Code filter: match by ticket_code or numeric id (more flexible)
