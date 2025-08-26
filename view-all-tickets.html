@@ -2531,6 +2531,26 @@
                     <option value="closed">Closed</option>
                 </select>
             </div>
+            <div class="status-filter" id="managerExtraFilters" style="display:none; gap:8px; align-items:end;">
+                <div>
+                    <label for="fromDate">From date:</label>
+                    <input type="date" id="fromDate" />
+                </div>
+                <div>
+                    <label for="toDate">To date:</label>
+                    <input type="date" id="toDate" />
+                </div>
+                <div>
+                    <label for="searchCode">Search TKT code:</label>
+                    <input type="text" id="searchCode" placeholder="e.g. TKT-0001" />
+                </div>
+                <button onclick="applyManagerFilters()" class="action-btn" style="background:#6b7280">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+                <button onclick="resetManagerFilters()" class="action-btn" style="background:#9ca3af; color:#111827;">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
             <button onclick="loadTickets()" class="action-btn" style="background: #3b82f6;">
                 <i class="fas fa-sync"></i> Refresh Tickets
             </button>
@@ -2609,6 +2629,9 @@
                 document.getElementById('headerDescription').textContent = 'Track and manage all support tickets in the system';
                 document.getElementById('backButton').href = 'dashboard.html';
                 document.getElementById('backButton').textContent = '← Back to Manager Dashboard';
+                // Show extra filters for manager only
+                const extra = document.getElementById('managerExtraFilters');
+                if (extra) extra.style.display = 'flex';
             } else {
                 console.log('=== NO AUTHENTICATION ===');
                 console.log('Session storage contents:', Object.keys(sessionStorage));
@@ -2654,7 +2677,23 @@
                 
                 console.log('API Base URL:', base);
                 
-                const apiUrl = base + 'tickets-list.php';
+                // Build query params for manager filters
+                let query = '';
+                if (currentUserRole === 'manager') {
+                    const statusValue = document.getElementById('statusFilter')?.value || '';
+                    const fromDate = document.getElementById('fromDate')?.value || '';
+                    const toDate = document.getElementById('toDate')?.value || '';
+                    const code = (document.getElementById('searchCode')?.value || '').trim();
+                    const params = new URLSearchParams();
+                    if (statusValue) params.set('status', statusValue);
+                    if (fromDate) params.set('fromDate', fromDate);
+                    if (toDate) params.set('toDate', toDate);
+                    if (code) params.set('code', code);
+                    const qs = params.toString();
+                    if (qs) query = '?' + qs;
+                }
+
+                const apiUrl = base + 'tickets-list.php' + query;
                 console.log('Making API call to:', apiUrl);
                 
                 // Test if the API endpoint is reachable
@@ -3037,6 +3076,24 @@
             }
             
             displayTickets(filteredTickets);
+        }
+
+        // Manager-only: apply extra filters (date range and code)
+        function applyManagerFilters() {
+            if (currentUserRole !== 'manager') return;
+            loadTickets();
+        }
+
+        function resetManagerFilters() {
+            if (currentUserRole !== 'manager') return;
+            const from = document.getElementById('fromDate');
+            const to = document.getElementById('toDate');
+            const code = document.getElementById('searchCode');
+            if (from) from.value = '';
+            if (to) to.value = '';
+            if (code) code.value = '';
+            document.getElementById('statusFilter').value = '';
+            loadTickets();
         }
 
         // View ticket details

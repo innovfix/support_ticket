@@ -10,6 +10,9 @@ try {
     $pdo = get_pdo();
     
     $status = isset($_GET['status']) ? trim((string)$_GET['status']) : null; // all by default
+    $fromDate = isset($_GET['fromDate']) ? trim((string)$_GET['fromDate']) : null; // YYYY-MM-DD
+    $toDate = isset($_GET['toDate']) ? trim((string)$_GET['toDate']) : null;   // YYYY-MM-DD
+    $code = isset($_GET['code']) ? trim((string)$_GET['code']) : null;         // TKT-xxxx or id
     
     $sql = 'SELECT 
         t.id,
@@ -32,11 +35,39 @@ try {
     LEFT JOIN staff_users s ON s.email = t.assigned_to';
     
     $params = [];
+    $where = [];
     if ($status && in_array($status, ['new','in-progress','resolved','closed'], true)) {
-        $sql .= ' WHERE status = ?';
+        $where[] = 't.status = ?';
         $params[] = $status;
     }
-    $sql .= ' ORDER BY id DESC';
+    // Date range filter on created_at
+    if ($fromDate !== null && $fromDate !== '') {
+        // validate basic format YYYY-MM-DD
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromDate)) {
+            $where[] = 'DATE(t.created_at) >= ?';
+            $params[] = $fromDate;
+        }
+    }
+    if ($toDate !== null && $toDate !== '') {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $toDate)) {
+            $where[] = 'DATE(t.created_at) <= ?';
+            $params[] = $toDate;
+        }
+    }
+    // Code filter: match by ticket_code or numeric id
+    if ($code !== null && $code !== '') {
+        if (preg_match('/^\d+$/', $code)) {
+            $where[] = 't.id = ?';
+            $params[] = (int)$code;
+        } else {
+            $where[] = 't.ticket_code = ?';
+            $params[] = $code;
+        }
+    }
+    if (!empty($where)) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY t.id DESC';
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
