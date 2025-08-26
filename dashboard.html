@@ -398,7 +398,7 @@
                     const result = await response.json();
                     console.log('API response:', result);
                     
-                    if (result.ok) {
+                    if (result.ok || result.success) {
                         alert('Ticket status updated successfully!');
                         closeStatusModal();
                         // Refresh the tickets list and dashboard counts
@@ -412,9 +412,29 @@
                         alert('Failed to update status: ' + (result.error || 'Unknown error'));
                     }
                 } else {
-                    const errorText = await response.text();
-                    console.error('HTTP Error Response:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    // Try to parse the error response to see if it's actually a success
+                    try {
+                        const errorText = await response.text();
+                        console.error('HTTP Error Response:', errorText);
+                        
+                        // Check if the error message indicates the ticket was actually found and updated
+                        if (errorText.includes('Ticket status updated successfully')) {
+                            alert('Ticket status updated successfully!');
+                            closeStatusModal();
+                            // Refresh the tickets list and dashboard counts
+                            if (typeof displayManagerTickets === 'function') {
+                                displayManagerTickets();
+                            }
+                            if (typeof updateManagerDashboardCounts === 'function') {
+                                updateManagerDashboardCounts();
+                            }
+                            return;
+                        }
+                        
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    } catch (parseError) {
+                        throw new Error(`HTTP ${response.status}: ${parseError.message}`);
+                    }
                 }
             } catch (error) {
                 console.error('Error updating ticket status:', error);
