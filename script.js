@@ -1489,9 +1489,22 @@ function displayManagerTickets() {
     (async () => {
         let list = [];
         try {
-            const statusFilter = document.getElementById('statusFilter');
-            const status = statusFilter && statusFilter.value ? statusFilter.value : 'all';
-            list = await fetchTicketsFromApi(status);
+            const statusFilterEl = document.getElementById('statusFilter');
+            const status = statusFilterEl && statusFilterEl.value ? statusFilterEl.value : 'all';
+            // Optional filters from dashboard page
+            const fromDate = document.getElementById('fromDateFilter')?.value || '';
+            const toDate = document.getElementById('toDateFilter')?.value || '';
+            const code = (document.getElementById('codeFilter')?.value || '').trim();
+            const params = new URLSearchParams();
+            if (status && status !== 'all') params.set('status', status);
+            if (fromDate) params.set('fromDate', fromDate);
+            if (toDate) params.set('toDate', toDate);
+            if (code) params.set('code', code);
+            const q = params.toString();
+            const url = q ? `api/tickets-list.php?${q}` : 'api/tickets-list.php';
+            const res = await apiFetchJson(url);
+            if (!res.ok) throw new Error('List failed');
+            list = res.tickets || [];
         } catch (e) {
             const storedTickets = localStorage.getItem('tickets');
             list = storedTickets ? JSON.parse(storedTickets) : [];
@@ -1730,19 +1743,16 @@ function filterManagerTickets() {
 function resetManagerFilter() {
     console.log('=== RESET MANAGER FILTER FUNCTION CALLED ===');
     const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.value = 'all';
-        console.log('Filter reset to "all"');
-        
-        // Clear the stored filter preference
-        localStorage.removeItem('managerStatusFilter');
-        
-        // Refresh the display to show all tickets
-        displayManagerTickets();
-        
-        // Show feedback to user
-        showInfoMessage('Filter reset - showing all tickets');
-    }
+    if (statusFilter) statusFilter.value = 'all';
+    const fromDate = document.getElementById('fromDateFilter');
+    const toDate = document.getElementById('toDateFilter');
+    const code = document.getElementById('codeFilter');
+    if (fromDate) fromDate.value = '';
+    if (toDate) toDate.value = '';
+    if (code) code.value = '';
+    localStorage.removeItem('managerStatusFilter');
+    displayManagerTickets();
+    showInfoMessage('Filter reset - showing all tickets');
 }
 
 function restoreFilterSelection() {
@@ -2338,6 +2348,9 @@ function initializeManagerLoginForm() {
                     localStorage.setItem('currentStaffId', managerIdValue);
                     sessionStorage.setItem('currentStaffId', managerIdValue);
                     sessionStorage.setItem('managerLoggedIn', 'true');
+                    // Persist manager flag in localStorage so other tabs/pages can detect
+                    localStorage.setItem('managerLoggedIn', 'true');
+                    localStorage.setItem('managerEmail', managerIdValue);
                     
                     showSuccessMessage('Login successful! Redirecting...');
                     setTimeout(() => {

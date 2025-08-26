@@ -2620,9 +2620,9 @@
                 document.getElementById('headerDescription').textContent = 'Track and manage your own created support tickets';
                 document.getElementById('backButton').href = 'staff-dashboard.html';
                 document.getElementById('backButton').textContent = 'Dashboard';
-            } else if (sessionStorage.getItem('managerLoggedIn')) {
+            } else if (sessionStorage.getItem('managerLoggedIn') || localStorage.getItem('managerLoggedIn')) {
                 currentUserRole = 'manager';
-                currentUserEmail = sessionStorage.getItem('managerEmail');
+                currentUserEmail = sessionStorage.getItem('managerEmail') || localStorage.getItem('managerEmail') || '';
                 console.log('=== MANAGER AUTHENTICATION ===');
                 console.log('Manager logged in:', sessionStorage.getItem('managerLoggedIn'));
                 console.log('Manager email from session:', currentUserEmail);
