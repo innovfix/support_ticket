@@ -3682,9 +3682,48 @@ ${ticket.statusDescription ? `Status Description: ${ticket.statusDescription}` :
                         alert('Failed to update status: ' + (result.error || 'Unknown error'));
                     }
                 } else {
-                    const errorText = await response.text();
-                    console.error('HTTP Error Response:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    // Try to parse the error response to see if it's actually a success
+                    try {
+                        const errorText = await response.text();
+                        console.error('HTTP Error Response:', errorText);
+                        
+                        // Check if the error message indicates the ticket was actually found and updated
+                        if (errorText.includes('Ticket status updated successfully')) {
+                            console.log('Status update successful despite HTTP error!');
+                            alert('Ticket status updated successfully!');
+                            
+                            // Clear the variable only after successful update
+                            const ticketIdToClear = currentTicketIdForStatus;
+                            currentTicketIdForStatus = null;
+                            console.log('Cleared currentTicketIdForStatus after successful update');
+                            
+                            closeStatusModal();
+                            
+                            // Force refresh tickets list
+                            console.log('Refreshing tickets list...');
+                            await loadTickets();
+                            console.log('Tickets list refreshed');
+                            
+                            // Additional verification - check if tickets were actually updated
+                            setTimeout(() => {
+                                console.log('=== VERIFICATION DEBUG ===');
+                                console.log('Current allTickets after refresh:', allTickets);
+                                const updatedTicket = allTickets.find(t => t.id == ticketIdToClear);
+                                if (updatedTicket) {
+                                    console.log('Updated ticket found:', updatedTicket);
+                                    console.log('New status:', updatedTicket.status);
+                                    console.log('New status description:', updatedTicket.statusDescription);
+                                } else {
+                                    console.log('Updated ticket not found in list');
+                                }
+                            }, 1000);
+                            return;
+                        }
+                        
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    } catch (parseError) {
+                        throw new Error(`HTTP ${response.status}: ${parseError.message}`);
+                    }
                 }
             } catch (error) {
                 console.error('Error updating ticket status:', error);
