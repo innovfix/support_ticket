@@ -1136,20 +1136,20 @@ async function updateStaffDashboardCounts() {
             // Get current staff email from session/localStorage
             const currentStaffEmail = sessionStorage.getItem('staffEmail') || localStorage.getItem('staffEmail');
             
-            // Count stats for tickets CREATED by current staff member only
+            // Count stats for tickets CREATED by current individual staff member only
             const assignedCount = apiTickets.filter(t => 
                 (t.status === 'new' || t.status === 'in-progress') && 
-                t.createdBy === 'Staff'
+                t.createdBy === currentStaffEmail
             ).length;
             
             const inProgressCount = apiTickets.filter(t => 
                 t.status === 'in-progress' && 
-                t.createdBy === 'Staff'
+                t.createdBy === currentStaffEmail
             ).length;
             
             const completedCount = apiTickets.filter(t => 
                 (t.status === 'resolved' || t.status === 'closed') && 
-                t.createdBy === 'Staff'
+                t.createdBy === currentStaffEmail
             ).length;
             
             // Update dashboard counts (only elements that exist in staff dashboard)
