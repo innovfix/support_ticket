@@ -54,14 +54,21 @@ try {
             $params[] = $toDate;
         }
     }
-    // Code filter: match by ticket_code or numeric id
+    // Code filter: match by ticket_code or numeric id (more flexible)
     if ($code !== null && $code !== '') {
-        if (preg_match('/^\d+$/', $code)) {
-            $where[] = 't.id = ?';
-            $params[] = (int)$code;
+        $normalizedCode = strtoupper($code);
+        if (preg_match('/^\d+$/', $normalizedCode)) {
+            // Numeric input: allow match by id, exact padded ticket code, and partial like
+            $paddedCode = 'TKT-' . str_pad($normalizedCode, 4, '0', STR_PAD_LEFT);
+            $where[] = '(t.id = ? OR t.ticket_code = ? OR t.ticket_code LIKE ?)';
+            $params[] = (int)$normalizedCode;       // by numeric id
+            $params[] = $paddedCode;                // by exact padded code e.g., TKT-0036
+            $params[] = '%' . $normalizedCode . '%';// partial contains for safety
         } else {
-            $where[] = 't.ticket_code = ?';
-            $params[] = $code;
+            // Non-numeric: try exact ticket code and a lenient contains match
+            $where[] = '(UPPER(t.ticket_code) = ? OR UPPER(t.ticket_code) LIKE ?)';
+            $params[] = $normalizedCode;
+            $params[] = '%' . $normalizedCode . '%';
         }
     }
     if (!empty($where)) {

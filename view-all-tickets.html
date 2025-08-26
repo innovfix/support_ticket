@@ -2521,42 +2521,44 @@
         </div>
         
         <div class="dashboard-actions">
-            <div class="status-filter">
-                <label for="statusFilter">Filter by Status:</label>
-                <select id="statusFilter" onchange="filterTickets()">
-                    <option value="">All Statuses</option>
-                    <option value="new">New</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                </select>
+            <div class="filter-controls" style="flex-wrap: wrap; gap: 14px;">
+                <div>
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="new">New</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                <div id="managerExtraFilters" style="display:none; gap: 12px; align-items: end; display: none;">
+                    <div>
+                        <label for="fromDate">From</label>
+                        <input type="date" id="fromDate" />
+                    </div>
+                    <div>
+                        <label for="toDate">To</label>
+                        <input type="date" id="toDate" />
+                    </div>
+                    <div>
+                        <label for="searchCode">Ticket code</label>
+                        <input type="text" id="searchCode" placeholder="e.g. TKT-0001" />
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button onclick="applyManagerFilters()" class="action-btn" style="background:#6b7280"><i class="fas fa-filter"></i> Apply</button>
+                        <button onclick="resetManagerFilters()" class="action-btn" style="background:#9ca3af; color:#111827;"><i class="fas fa-undo"></i> Reset</button>
+                    </div>
+                </div>
+                <div style="margin-left:auto; display:flex; gap:10px;">
+                    <button onclick="loadTickets()" class="action-btn" style="background: #3b82f6;">
+                        <i class="fas fa-sync"></i> Refresh Tickets
+                    </button>
+                    <a href="create-ticket.html" class="action-btn" style="background: #10b981;">
+                        <i class="fas fa-plus"></i> Create New Ticket
+                    </a>
+                </div>
             </div>
-            <div class="status-filter" id="managerExtraFilters" style="display:none; gap:8px; align-items:end;">
-                <div>
-                    <label for="fromDate">From date:</label>
-                    <input type="date" id="fromDate" />
-                </div>
-                <div>
-                    <label for="toDate">To date:</label>
-                    <input type="date" id="toDate" />
-                </div>
-                <div>
-                    <label for="searchCode">Search TKT code:</label>
-                    <input type="text" id="searchCode" placeholder="e.g. TKT-0001" />
-                </div>
-                <button onclick="applyManagerFilters()" class="action-btn" style="background:#6b7280">
-                    <i class="fas fa-filter"></i> Apply
-                </button>
-                <button onclick="resetManagerFilters()" class="action-btn" style="background:#9ca3af; color:#111827;">
-                    <i class="fas fa-undo"></i> Reset
-                </button>
-            </div>
-            <button onclick="loadTickets()" class="action-btn" style="background: #3b82f6;">
-                <i class="fas fa-sync"></i> Refresh Tickets
-            </button>
-            <a href="create-ticket.html" class="action-btn" style="background: #10b981;">
-                <i class="fas fa-plus"></i> Create New Ticket
-            </a>
         </div>
 
         <div class="tickets-section">
@@ -2632,6 +2634,9 @@
                 // Show extra filters for manager only
                 const extra = document.getElementById('managerExtraFilters');
                 if (extra) extra.style.display = 'flex';
+                // Setup filter listeners and restore saved values
+                restoreSavedFilters();
+                setupFilterListeners();
             } else {
                 console.log('=== NO AUTHENTICATION ===');
                 console.log('Session storage contents:', Object.keys(sessionStorage));
@@ -2644,6 +2649,52 @@
             console.log('Email:', currentUserEmail);
             
             loadTickets();
+        }
+
+        // Persist and restore filter selections for manager
+        function restoreSavedFilters() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('managerViewFilters') || '{}');
+                const statusEl = document.getElementById('statusFilter');
+                const fromEl = document.getElementById('fromDate');
+                const toEl = document.getElementById('toDate');
+                const codeEl = document.getElementById('searchCode');
+                if (statusEl && saved.status !== undefined) statusEl.value = saved.status || '';
+                if (fromEl && saved.fromDate) fromEl.value = saved.fromDate;
+                if (toEl && saved.toDate) toEl.value = saved.toDate;
+                if (codeEl && saved.code !== undefined) codeEl.value = saved.code || '';
+            } catch(e) {}
+        }
+
+        function saveFilters() {
+            try {
+                const status = document.getElementById('statusFilter')?.value || '';
+                const fromDate = document.getElementById('fromDate')?.value || '';
+                const toDate = document.getElementById('toDate')?.value || '';
+                const code = (document.getElementById('searchCode')?.value || '').trim();
+                localStorage.setItem('managerViewFilters', JSON.stringify({ status, fromDate, toDate, code }));
+            } catch(e) {}
+        }
+
+        // Debounce helper
+        function debounce(fn, wait) {
+            let t;
+            return function(...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), wait);
+            };
+        }
+
+        function setupFilterListeners() {
+            const statusEl = document.getElementById('statusFilter');
+            const fromEl = document.getElementById('fromDate');
+            const toEl = document.getElementById('toDate');
+            const codeEl = document.getElementById('searchCode');
+            const trigger = debounce(() => { saveFilters(); loadTickets(); }, 300);
+            if (statusEl) statusEl.addEventListener('change', trigger);
+            if (fromEl) fromEl.addEventListener('change', trigger);
+            if (toEl) toEl.addEventListener('change', trigger);
+            if (codeEl) codeEl.addEventListener('input', trigger);
         }
 
         // Load tickets
@@ -3081,6 +3132,7 @@
         // Manager-only: apply extra filters (date range and code)
         function applyManagerFilters() {
             if (currentUserRole !== 'manager') return;
+            saveFilters();
             loadTickets();
         }
 
@@ -3093,6 +3145,7 @@
             if (to) to.value = '';
             if (code) code.value = '';
             document.getElementById('statusFilter').value = '';
+            saveFilters();
             loadTickets();
         }
 
