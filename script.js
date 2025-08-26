@@ -1133,25 +1133,37 @@ async function updateStaffDashboardCounts() {
                 return t.createdBy === 'Staff' && ticketDate >= todayStart;
             }).length;
             
-            // Count other stats
-            const assignedCount = apiTickets.filter(t => t.status === 'new' || t.status === 'in-progress').length;
-            const inProgressCount = apiTickets.filter(t => t.status === 'in-progress').length;
-            const completedCount = apiTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+            // Get current staff email from session/localStorage
+            const currentStaffEmail = sessionStorage.getItem('staffEmail') || localStorage.getItem('staffEmail');
             
-            // Update all dashboard counts
-            const todayElement = document.getElementById('todayTotalQueries');
+            // Count stats for current staff member only
+            const assignedCount = apiTickets.filter(t => 
+                (t.status === 'new' || t.status === 'in-progress') && 
+                t.assignedTo === currentStaffEmail
+            ).length;
+            
+            const inProgressCount = apiTickets.filter(t => 
+                t.status === 'in-progress' && 
+                t.assignedTo === currentStaffEmail
+            ).length;
+            
+            const completedCount = apiTickets.filter(t => 
+                (t.status === 'resolved' || t.status === 'closed') && 
+                t.assignedTo === currentStaffEmail
+            ).length;
+            
+            // Update dashboard counts (only elements that exist in staff dashboard)
             const assignedElement = document.getElementById('assignedQueries');
             const inProgressElement = document.getElementById('inProgressQueries');
             const completedElement = document.getElementById('completedQueries');
             
-            if (todayElement) todayElement.textContent = todayCount;
             if (assignedElement) assignedElement.textContent = assignedCount;
             if (inProgressElement) inProgressElement.textContent = inProgressCount;
             if (completedElement) completedElement.textContent = completedCount;
         } catch (error) {
             console.error('Error updating staff dashboard counts:', error);
             // Set counts to 0 if API fails
-            const elements = ['todayTotalQueries', 'assignedQueries', 'inProgressQueries', 'completedQueries'];
+            const elements = ['assignedQueries', 'inProgressQueries', 'completedQueries'];
             elements.forEach(id => {
                 const element = document.getElementById(id);
                 if (element) element.textContent = '0';

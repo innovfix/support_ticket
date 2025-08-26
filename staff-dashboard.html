@@ -387,7 +387,10 @@
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-
+            // Initialize staff dashboard counts
+            if (typeof updateStaffDashboardCounts === 'function') {
+                updateStaffDashboardCounts();
+            }
         });
         
         // Helper functions for ticket display
