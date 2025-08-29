@@ -35,6 +35,11 @@ try {
     
     $params = [];
     $where = [];
+    
+    // Auto-hide resolved tickets older than 1 day (24 hours)
+    // This applies to both manager and staff views
+    $where[] = '(t.status != "resolved" OR t.updated_at >= DATE_SUB(NOW(), INTERVAL 1 DAY))';
+    
     if ($status && in_array($status, ['new','in-progress','resolved','closed'], true)) {
         $where[] = 't.status = ?';
         $params[] = $status;
