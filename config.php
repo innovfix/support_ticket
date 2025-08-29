@@ -10,7 +10,7 @@ define('DB_HOST', 'localhost');          // Usually 'localhost' for shared hosti
 define('DB_NAME', 'u743445510_hima_support'); // Your hosting database name
 define('DB_USER', 'u743445510_hima_support');   // Your hosting database username
 define('DB_PASS', 'HimaSupport@2025');   // Your hosting database password
-define('DB_PORT', '3306');                // Default MySQL port
+define('DB_PORT', '3306');               // Default MySQL port
 
 // Application Configuration (Production)
 define('APP_URL', 'https://ticket.himaapp.in/query-desk/');  // Your website URL
